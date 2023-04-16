@@ -43,59 +43,124 @@ class QrGenerate extends StatelessWidget {
         ));
   }
 
+  Future<void> writeToFile(ByteData data, String path) async {
+    final buffer = data.buffer;
+    await File(path).writeAsBytes(
+        buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
+  }
+
   Future<bool> saveQrCode(context) async {
     String status;
     String message;
-    try {
-      // generate QR code as image
-      final image = await QrPainter(
-        data: controller.text,
-        version: QrVersions.auto,
-        gapless: false,
-        color: Colors.black,
-        emptyColor: Colors.white,
-      ).toImage(500);
-
-      // convert image to byte data
-      final byteData = await image.toByteData(format: ImageByteFormat.png);
-      final pngBytes = byteData!.buffer.asUint8List();
-
-      // get temporary directory path
-      final tempDir = await getTemporaryDirectory();
-      final tempPath = tempDir.path;
-
-      // save image to temporary directory
-      final ts = DateTime.now().millisecondsSinceEpoch.toString();
-      final imgFile =
-          await File('$tempPath/qrcode_$ts.png').writeAsBytes(pngBytes);
-
-      // save image to gallery
-      final result = await GallerySaver.saveImage(imgFile.path);
-      status = "Success";
-      message = 'Image saved to gallery: $result';
-    } catch (e) {
-      status = "Failed";
-      message = 'Failed to save image to gallery: $e';
-    }
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(status),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
+    // generate QR code as image
+    final qrValidationResult = QrValidator.validate(
+      data: controller.text,
+      version: QrVersions.auto,
+      errorCorrectionLevel: QrErrorCorrectLevel.L,
     );
 
+    if (qrValidationResult.status != QrValidationStatus.valid) {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text(
+                "Invalid QR Code",
+                style: TextStyle(
+                  color: Colors.white, // set the text color here
+                ),
+              ),
+              content: Text(
+                qrValidationResult.error as String,
+                style: const TextStyle(
+                  color: Colors.white, // set the text color here
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text(
+                    'Close',
+                    style: TextStyle(
+                      color: Colors.white, // set the text color here
+                    ),
+                  ),
+                ),
+              ],
+            );
+          });
+    } else {
+      try {
+        final qrCode = qrValidationResult.qrCode!;
+
+        final painter = QrPainter.withQr(
+          qr: qrCode,
+          color: Colors.black,
+          emptyColor: Colors.white,
+          gapless: true,
+          embeddedImageStyle: null,
+          embeddedImage: null,
+        );
+
+        final picData =
+            await painter.toImageData(2048, format: ImageByteFormat.png);
+
+        // get temporary directory path
+        final tempDir = await getTemporaryDirectory();
+        final tempPath = tempDir.path;
+
+        // save image to temporary directory
+        final ts = DateTime.now().millisecondsSinceEpoch.toString();
+        final filepath = 'qrcode_$ts.png';
+        final path = '$tempPath/$filepath';
+
+        await writeToFile(picData!, path);
+
+        // save image to gallery
+        await GallerySaver.saveImage(path);
+
+        status = "Success";
+        message = 'Image saved to gallery: $filepath';
+      } catch (e) {
+        status = "Failed";
+        message = 'Failed to save image to gallery: $e';
+      }
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(
+              status,
+              style: const TextStyle(
+                color: Colors.white, // set the text color here
+              ),
+            ),
+            content: Text(
+              message,
+              style: const TextStyle(
+                color: Colors.white, // set the text color here
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text(
+                  'OK',
+                  style: TextStyle(
+                    color: Colors.white, // set the text color here
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    }
     return true;
   }
 
