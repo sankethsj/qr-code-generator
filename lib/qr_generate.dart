@@ -6,41 +6,33 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:gallery_saver/gallery_saver.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class QrGenerate extends StatelessWidget {
   const QrGenerate(this.controller, {super.key});
 
   final TextEditingController controller;
 
-  Widget _generateQrCode() {
+  Widget _showQrCode() {
     return Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.5),
-              spreadRadius: 2,
-              blurRadius: 5,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: QrImage(
-            data: controller.text,
-            size: 320,
-            // You can include embeddedImageStyle Property if you
-            //wanna embed an image from your Asset folder
-            embeddedImageStyle: QrEmbeddedImageStyle(
-              size: const Size(
-                100,
-                100,
-              ),
-            ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(0, 3),
           ),
-        ));
+        ],
+      ),
+      child: QrImage(
+        data: controller.text,
+        size: 320,
+        padding: const EdgeInsets.all(10),
+      ),
+    );
   }
 
   Future<void> writeToFile(ByteData data, String path) async {
@@ -49,9 +41,7 @@ class QrGenerate extends StatelessWidget {
         buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
   }
 
-  Future<bool> saveQrCode(context) async {
-    String status;
-    String message;
+  Future createQrFile() async {
     // generate QR code as image
     final qrValidationResult = QrValidator.validate(
       data: controller.text,
@@ -60,108 +50,91 @@ class QrGenerate extends StatelessWidget {
     );
 
     if (qrValidationResult.status != QrValidationStatus.valid) {
-      showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text(
-                "Invalid QR Code",
-                style: TextStyle(
-                  color: Colors.white, // set the text color here
-                ),
-              ),
-              content: Text(
-                qrValidationResult.error as String,
-                style: const TextStyle(
-                  color: Colors.white, // set the text color here
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text(
-                    'Close',
-                    style: TextStyle(
-                      color: Colors.white, // set the text color here
-                    ),
-                  ),
-                ),
-              ],
-            );
-          });
+      throw Exception(qrValidationResult.error);
     } else {
-      try {
-        final qrCode = qrValidationResult.qrCode!;
+      final qrCode = qrValidationResult.qrCode!;
 
-        final painter = QrPainter.withQr(
+      final painter = QrPainter.withQr(
           qr: qrCode,
           color: Colors.black,
           emptyColor: Colors.white,
           gapless: true,
           embeddedImageStyle: null,
-          embeddedImage: null,
-        );
+          embeddedImage: null);
 
-        final picData =
-            await painter.toImageData(2048, format: ImageByteFormat.png);
+      final picData =
+          await painter.toImageData(2048, format: ImageByteFormat.png);
 
-        // get temporary directory path
-        final tempDir = await getTemporaryDirectory();
-        final tempPath = tempDir.path;
+      // get temporary directory path
+      final tempDir = await getTemporaryDirectory();
+      final tempPath = tempDir.path;
 
-        // save image to temporary directory
-        final ts = DateTime.now().millisecondsSinceEpoch.toString();
-        final filepath = 'qrcode_$ts.png';
-        final path = '$tempPath/$filepath';
+      // save image to temporary directory
+      final ts = DateTime.now().millisecondsSinceEpoch.toString();
+      final filepath = 'qrcode_$ts.png';
+      final path = '$tempPath/$filepath';
 
-        await writeToFile(picData!, path);
+      await writeToFile(picData!, path);
 
-        // save image to gallery
-        await GallerySaver.saveImage(path);
+      return path;
+    }
+  }
 
-        status = "Success";
-        message = 'Image saved to gallery: $filepath';
-      } catch (e) {
-        status = "Failed";
-        message = 'Failed to save image to gallery: $e';
-      }
+  Future saveQrCode(context) async {
+    String status;
+    String message;
 
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text(
-              status,
-              style: const TextStyle(
-                color: Colors.white, // set the text color here
-              ),
+    try {
+      final qrFilePath = await createQrFile();
+
+      await GallerySaver.saveImage(qrFilePath);
+
+      status = "Success";
+      message = "Successfully saved to Gallery";
+    } catch (e) {
+      status = "Failed";
+      message = "Failed to save to Gallery. $e";
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            status,
+            style: const TextStyle(
+              color: Colors.white, // set the text color here
             ),
-            content: Text(
-              message,
-              style: const TextStyle(
-                color: Colors.white, // set the text color here
-              ),
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              color: Colors.white, // set the text color here
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text(
-                  'OK',
-                  style: TextStyle(
-                    color: Colors.white, // set the text color here
-                  ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  color: Colors.white, // set the text color here
                 ),
               ),
-            ],
-          );
-        },
-      );
-    }
-    return true;
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future shareQrCode() async {
+    String path = await createQrFile();
+
+    await Share.shareXFiles([XFile(path, mimeType: "image/png")],
+        subject: 'Checkout my QR code', text: 'Please scan me');
   }
 
   @override
@@ -192,21 +165,39 @@ class QrGenerate extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(0, 100, 0, 30),
-            child: _generateQrCode(),
+            child: _showQrCode(),
           ),
-          ElevatedButton(
-            onPressed: () async {
-              saveQrCode(context);
-            },
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                Icon(Icons.save),
-                SizedBox(width: 8),
-                Text('Save to Gallery'),
-              ],
-            ),
-          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton(
+                onPressed: () async {
+                  await saveQrCode(context);
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.save),
+                    SizedBox(width: 8),
+                    Text('Save to Gallery'),
+                  ],
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  await shareQrCode();
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.share),
+                    SizedBox(width: 8),
+                    Text('Share'),
+                  ],
+                ),
+              ),
+            ],
+          )
         ],
       )),
     );
