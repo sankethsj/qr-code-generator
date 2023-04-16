@@ -13,56 +13,90 @@ class QrGenerate extends StatelessWidget {
   final TextEditingController controller;
 
   Widget _generateQrCode() {
-    return QrImage(
-      data: controller.text,
-      size: 320,
-      // You can include embeddedImageStyle Property if you
-      //wanna embed an image from your Asset folder
-      embeddedImageStyle: QrEmbeddedImageStyle(
-        size: const Size(
-          100,
-          100,
+    return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.5),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
-      ),
-    );
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: QrImage(
+            data: controller.text,
+            size: 320,
+            // You can include embeddedImageStyle Property if you
+            //wanna embed an image from your Asset folder
+            embeddedImageStyle: QrEmbeddedImageStyle(
+              size: const Size(
+                100,
+                100,
+              ),
+            ),
+          ),
+        ));
   }
 
-  Future<void> writeToFile(ByteData data, String path) async {
-    final buffer = data.buffer;
-    await File(path).writeAsBytes(
-        buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
-  }
+  Future<bool> saveQrCode(context) async {
+    String status;
+    String message;
+    try {
+      // generate QR code as image
+      final image = await QrPainter(
+        data: controller.text,
+        version: QrVersions.auto,
+        gapless: false,
+        color: Colors.black,
+        emptyColor: Colors.white,
+      ).toImage(500);
 
-  Future<bool> saveQrCode() async {
-    final qrValidationResult = QrValidator.validate(
-      data: controller.text,
-      version: QrVersions.auto,
-      errorCorrectionLevel: QrErrorCorrectLevel.L,
-    );
+      // convert image to byte data
+      final byteData = await image.toByteData(format: ImageByteFormat.png);
+      final pngBytes = byteData!.buffer.asUint8List();
 
-    if (qrValidationResult.status == QrValidationStatus.valid) {
-      final qrCode = qrValidationResult.qrCode;
-      final painter = QrPainter.withQr(
-        qr: qrCode!,
-        color: const Color(0xFF000000),
-        gapless: true,
-        embeddedImageStyle: null,
-        embeddedImage: null,
-      );
+      // get temporary directory path
+      final tempDir = await getTemporaryDirectory();
+      final tempPath = tempDir.path;
 
-      Directory tempDir = await getTemporaryDirectory();
-      String tempPath = tempDir.path;
+      // save image to temporary directory
       final ts = DateTime.now().millisecondsSinceEpoch.toString();
-      String path = '$tempPath/$ts.png';
+      final imgFile =
+          await File('$tempPath/qrcode_$ts.png').writeAsBytes(pngBytes);
 
-      final picData =
-          await painter.toImageData(2048, format: ImageByteFormat.png);
-      await writeToFile(picData!, path);
-
-      await GallerySaver.saveImage(path);
-      return true;
+      // save image to gallery
+      final result = await GallerySaver.saveImage(imgFile.path);
+      status = "Success";
+      message = 'Image saved to gallery: $result';
+    } catch (e) {
+      status = "Failed";
+      message = 'Failed to save image to gallery: $e';
     }
-    return false;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(status),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+
+    return true;
   }
 
   @override
@@ -92,43 +126,21 @@ class QrGenerate extends StatelessWidget {
           child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(0, 150, 0, 30),
+            padding: const EdgeInsets.fromLTRB(0, 100, 0, 30),
             child: _generateQrCode(),
           ),
           ElevatedButton(
             onPressed: () async {
-              try {
-                // generate QR code as image
-                final image = await QrPainter(
-                  data: controller.text,
-                  version: QrVersions.auto,
-                  gapless: false,
-                  color: Colors.black,
-                  emptyColor: Colors.white,
-                ).toImage(400);
-
-                // convert image to byte data
-                final byteData =
-                    await image.toByteData(format: ImageByteFormat.png);
-                final pngBytes = byteData!.buffer.asUint8List();
-
-                // get temporary directory path
-                final tempDir = await getTemporaryDirectory();
-                final tempPath = tempDir.path;
-
-                // save image to temporary directory
-                final ts = DateTime.now().millisecondsSinceEpoch.toString();
-                final imgFile = await File('$tempPath/qrcode_$ts.png')
-                    .writeAsBytes(pngBytes);
-
-                // save image to gallery
-                final result = await GallerySaver.saveImage(imgFile.path);
-                print('Image saved to gallery: $result');
-              } catch (e) {
-                print('Failed to save image to gallery: $e');
-              }
+              saveQrCode(context);
             },
-            child: const Text('Save to Gallery'),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.save),
+                SizedBox(width: 8),
+                Text('Save to Gallery'),
+              ],
+            ),
           ),
         ],
       )),
