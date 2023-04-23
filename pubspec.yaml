@@ -13,7 +13,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  google_fonts: ^4.0.3
   qr_flutter: ^4.0.0
   path_provider: ^2.0.14
   gallery_saver: ^2.3.2
@@ -47,8 +46,7 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  assets:
-    - assets/google_fonts/
+  # assets:
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
@@ -61,6 +59,23 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
+  fonts:
+    - family: Raleway     
+      fonts:
+        - asset: assets/font/Raleway-Regular.ttf
+        - asset: assets/font/Raleway-Black.ttf
+          weight: 900
+        - asset: assets/font/Raleway-ExtraBold.ttf
+          weight: 800
+        - asset: assets/font/Raleway-Bold.ttf
+          weight: 700
+        - asset: assets/font/Raleway-Italic.ttf
+          style: italic
+        - asset: assets/font/Raleway-Medium.ttf
+          weight: 500
+        - asset: assets/font/Raleway-Light.ttf
+          weight: 300
+        
   # fonts:
   #   - family: Schyler
   #     fonts:
