@@ -127,26 +127,17 @@ class QrGeneratorState extends State<QrGenerator> {
         return AlertDialog(
           title: Text(
             status,
-            style: const TextStyle(
-              color: Colors.black, // set the text color here
-            ),
           ),
           content: Text(
             message,
-            style: const TextStyle(
-              color: Colors.black, // set the text color here
-            ),
           ),
           actions: [
-            TextButton(
+            OutlinedButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
               child: const Text(
                 'OK',
-                style: TextStyle(
-                  color: Colors.black, // set the text color here
-                ),
               ),
             ),
           ],
@@ -191,12 +182,13 @@ class QrGeneratorState extends State<QrGenerator> {
               padding: const EdgeInsets.all(10.0),
               child: TextField(
                 controller: _controller,
-                style: const TextStyle(
-                    color: Color.fromARGB(255, 6, 68, 119), fontSize: 16.0),
+                style: TextStyle(
+                    color: Theme.of(context).primaryColor, fontSize: 16.0),
                 decoration: InputDecoration(
                   border: const OutlineInputBorder(),
-                  enabledBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.black),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Theme.of(context).primaryColorDark),
                   ),
                   labelText: 'Enter your text',
                   suffixIcon: _isTextFieldEmpty
@@ -217,12 +209,33 @@ class QrGeneratorState extends State<QrGenerator> {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    width: 3.0,
+                    color: Theme.of(context).hintColor,
+                  ),
                   color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).hoverColor,
+                      offset: const Offset(
+                        0.0,
+                        0.0,
+                      ),
+                      blurRadius: 5.0,
+                      spreadRadius: 2.0,
+                    ),
+                    BoxShadow(
+                      color: Theme.of(context).hoverColor,
+                      offset: const Offset(0.0, 0.0),
+                      blurRadius: 5.0,
+                      spreadRadius: 2.0,
+                    ),
+                  ],
                 ),
                 child: QrImage(
                   foregroundColor: Colors.black,
                   data: _controller.text,
-                  size: 380,
+                  size: 360,
                   padding: const EdgeInsets.all(10),
                 ),
               ),

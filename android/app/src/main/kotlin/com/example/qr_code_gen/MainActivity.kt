@@ -1,4 +1,4 @@
-package com.example.qr_code_gen
+package sj.tech.myqr
 
 import io.flutter.embedding.android.FlutterActivity
 
