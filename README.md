@@ -1,16 +1,30 @@
-# qr_code_gen
+# **MyQR**
 
-A new Flutter project.
+![MyQR app logo](https://github.com/sankethsj/qr-code-generator/blob/main/assets/icon/app_icon.png?raw=true)
 
-## Getting Started
+A Material You themed flutter app to Create, Save, Scan QR codes. MyQR.
 
-This project is a starting point for a Flutter application.
+ <a href="https://github.com/sankethsj/qr-code-generator" style="text-decoration:none" area-label="flutter">
+    <img src="https://img.shields.io/badge/Platform-Flutter-blue">
+  </a>
+  <a href="https://github.com/sankethsj/qr-code-generator/releases/tag/v1.1.0" style="text-decoration:none" area-label="flutter">
+    <img src="https://img.shields.io/badge/Version-1.1.0-orange">
+  </a>
 
-A few resources to get you started if this is your first Flutter project:
+## Manage QR Code
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- Generate QR Codes
+- Save or Share QR Codes
+- QR Code Scanner
+- Material You themeing
+- Dark Mode support
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+---
+
+### License
+
+    Copyright (c) 2023, Sanketh Jain
+    All rights reserved.
+    
+    This source code is licensed under the GPLv3-style license found in the
+    LICENSE file in the root directory of this source tree. 
