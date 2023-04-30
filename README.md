@@ -1,6 +1,6 @@
 # **MyQR**
 
-![MyQR app logo](https://github.com/sankethsj/qr-code-generator/blob/main/assets/icon/app_icon.png?raw=true | width=300)
+<img alt="MyQR app logo" src="https://github.com/sankethsj/qr-code-generator/blob/main/assets/icon/app_icon.png?raw=true" width=300>
 
 A Material You themed flutter app to Create, Save, Scan QR codes. MyQR.
 
