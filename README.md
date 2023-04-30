@@ -1,6 +1,6 @@
 # **MyQR**
 
-<img alt="MyQR app logo" src="https://github.com/sankethsj/qr-code-generator/blob/main/assets/icon/app_icon.png?raw=true" width=300>
+<img alt="MyQR app logo" src="assets/icon/app_icon.png" width=300>
 
 A Material You themed flutter app to Create, Save, Scan QR codes. MyQR.
 
@@ -18,6 +18,16 @@ A Material You themed flutter app to Create, Save, Scan QR codes. MyQR.
 - QR Code Scanner
 - Material You themeing
 - Dark Mode support
+
+<img alt="Presentation" src="mocks/MainPage-Presentation.jpg">
+
+---
+
+## Mockups
+
+| <img src="mocks/Mainpage-Mockup.png" width="200"/> | <img src="mocks/MainPage-Mockup-Dark.png" width="200"/> | <img src="mocks/Settings-Mockup.png" width="200"/> |
+| :--: | :--: | :--: |
+| Home (Light Mode) | Home (Dark Mode) | Settings |
 
 ---
 
