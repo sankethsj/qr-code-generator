@@ -123,7 +123,7 @@ class ScanImageState extends State<ScanImage> {
                           image!,
                           fit: BoxFit.cover,
                         )
-                      : const Text("Image not selected!"),
+                      : const CircularProgressIndicator(),
                 ),
                 const SizedBox(height: 30),
                 if (image != null) ...[

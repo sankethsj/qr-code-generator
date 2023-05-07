@@ -204,83 +204,68 @@ class QrGeneratorState extends State<QrGenerator> {
                 maxLines: null,
               ),
             ),
-            const SizedBox(height: 20),
-            Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    width: 3.0,
-                    color: Theme.of(context).hintColor,
-                  ),
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(context).hoverColor,
-                      offset: const Offset(
-                        0.0,
-                        0.0,
-                      ),
-                      blurRadius: 5.0,
-                      spreadRadius: 2.0,
+            if (!_isTextFieldEmpty) ...[
+              const SizedBox(height: 20),
+              Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      width: 3.0,
+                      color: Theme.of(context).hintColor,
                     ),
-                    BoxShadow(
-                      color: Theme.of(context).hoverColor,
-                      offset: const Offset(0.0, 0.0),
-                      blurRadius: 5.0,
-                      spreadRadius: 2.0,
+                    color: Colors.white,
+                  ),
+                  child: QrImage(
+                    foregroundColor: Colors.black,
+                    data: _controller.text,
+                    size: 360,
+                    padding: const EdgeInsets.all(16),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    FilledButton(
+                      style: const ButtonStyle(
+                        padding: MaterialStatePropertyAll(EdgeInsets.all(10.0)),
+                      ),
+                      onPressed: () {
+                        saveQrCode(context);
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.save),
+                          SizedBox(width: 8),
+                          Text('Save to Gallery'),
+                        ],
+                      ),
+                    ),
+                    FilledButton(
+                      style: const ButtonStyle(
+                        padding: MaterialStatePropertyAll(EdgeInsets.all(10.0)),
+                      ),
+                      onPressed: () {
+                        shareQrCode();
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.share),
+                          SizedBox(width: 8),
+                          Text('Share QR'),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-                child: QrImage(
-                  foregroundColor: Colors.black,
-                  data: _controller.text,
-                  size: 360,
-                  padding: const EdgeInsets.all(10),
-                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  FilledButton(
-                    style: const ButtonStyle(
-                      padding: MaterialStatePropertyAll(EdgeInsets.all(10.0)),
-                    ),
-                    onPressed: () {
-                      saveQrCode(context);
-                    },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(Icons.save),
-                        SizedBox(width: 8),
-                        Text('Save to Gallery'),
-                      ],
-                    ),
-                  ),
-                  FilledButton(
-                    style: const ButtonStyle(
-                      padding: MaterialStatePropertyAll(EdgeInsets.all(10.0)),
-                    ),
-                    onPressed: () {
-                      shareQrCode();
-                    },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(Icons.share),
-                        SizedBox(width: 8),
-                        Text('Share QR'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 60),
+              const SizedBox(height: 60),
+            ],
           ],
         ));
   }
