@@ -44,7 +44,11 @@ class ScanResultState extends State<ScanResult> {
   }
 
   bool _textIsLink(String text) {
-    return Uri.parse(text).isAbsolute;
+    try {
+      return Uri.parse(text).isAbsolute;
+    } catch (e) {
+      return false;
+    }
   }
 
   String _resultType(String text) {
