@@ -11,6 +11,14 @@ A Material You themed flutter app to Create, Save, Scan QR codes. MyQR.
     <img src="https://img.shields.io/badge/Version-1.1.1-green">
   </a>
 
+## **Download Now**
+
+<a href="https://play.google.com/store/apps/details?id=sj.tech.myqr">
+<img src="https://img.shields.io/badge/From-Playstore-orange">
+</a>
+
+---
+
 ## Manage QR Code
 
 - Generate QR Codes
