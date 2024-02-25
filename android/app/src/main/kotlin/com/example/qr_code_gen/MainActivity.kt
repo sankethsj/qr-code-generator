@@ -1,4 +1,4 @@
-package sj.tech.myqr
+package com.nightdreamgames.omniqr
 
 import io.flutter.embedding.android.FlutterActivity
 
