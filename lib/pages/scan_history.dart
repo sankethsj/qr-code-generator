@@ -1,8 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:qr_code_gen/pages/scan_result.dart';
-import 'package:qr_code_gen/utils/model.dart';
-import 'package:qr_code_gen/utils/db.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
+// Flutter imports:
+import "package:flutter/material.dart";
+
+// Project imports:
+import "package:qr_code_gen/pages/scan_result.dart";
+import "package:qr_code_gen/utils/db.dart";
+import "package:qr_code_gen/utils/model.dart";
 
 class ScanHistory extends StatefulWidget {
   const ScanHistory({super.key});
@@ -37,7 +39,7 @@ class _ScanHistoryState extends State<ScanHistory> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Scan History'),
+        title: const Text("Scan History"),
       ),
       body: FutureBuilder<List<ScanArchive>>(
         future: scanHistory,
@@ -45,9 +47,9 @@ class _ScanHistoryState extends State<ScanHistory> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(child: Text("Error: ${snapshot.error}"));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No scans found.'));
+            return const Center(child: Text("No scans found."));
           } else {
             return ListView.builder(
               itemCount: snapshot.data!.length,
@@ -91,7 +93,7 @@ class ScanArchiveListItem extends StatelessWidget {
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           title: Text(
-            scan.scanText,
+            scan.barcode.displayValue ?? scan.barcode.rawValue ?? "",
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -100,7 +102,7 @@ class ScanArchiveListItem extends StatelessWidget {
           subtitle: Padding(
             padding: const EdgeInsets.fromLTRB(0, 8.0, 0, 0),
             child: Text(
-              'Scanned on: ${scan.timestamp}',
+              "Scanned on: ${scan.timestamp}",
               style: const TextStyle(
                 fontStyle: FontStyle.italic,
                 fontSize: 14,
@@ -118,11 +120,10 @@ class ScanArchiveListItem extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (context) => ScanResult(
-                  resultText: scan.scanText,
-                  resultFormat: BarcodeFormat.qrcode,
+                  barcode: scan.barcode,
                 ),
               ),
-            )
+            ),
           },
         ),
       ),

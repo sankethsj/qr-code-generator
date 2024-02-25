@@ -2,7 +2,7 @@
 
 <img alt="MyQR app logo" src="assets/icon/app_icon.png" width=300>
 
-A Material You themed flutter app to Create, Save, Scan QR codes. MyQR.
+MyQR, a Material You themed Flutter app to Create, Save, Scan QR codes.
 
  <a href="https://github.com/sankethsj/qr-code-generator" style="text-decoration:none" area-label="flutter">
     <img src="https://img.shields.io/badge/Platform-Flutter-blue">
@@ -24,7 +24,7 @@ A Material You themed flutter app to Create, Save, Scan QR codes. MyQR.
 - Generate QR Codes
 - Save or Share QR Codes
 - QR Code Scanner
-- Material You themeing
+- Material You theming
 - Dark Mode support
 
 <img alt="Presentation" src="mocks/MainPage-Presentation.jpg">
@@ -45,4 +45,4 @@ A Material You themed flutter app to Create, Save, Scan QR codes. MyQR.
     All rights reserved.
     
     This source code is licensed under the GPLv3-style license found in the
-    LICENSE file in the root directory of this source tree. 
+    LICENSE file in the root directory of this source tree.

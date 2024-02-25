@@ -1,19 +1,23 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:qr_code_gen/utils/model.dart';
-import 'package:qr_code_gen/utils/db.dart';
+// Flutter imports:
+import "package:flutter/material.dart";
+import "package:flutter/services.dart";
+
+// Package imports:
+import "package:flex_color_scheme/flex_color_scheme.dart";
+import "package:mobile_scanner/mobile_scanner.dart";
+import "package:url_launcher/url_launcher.dart";
+import "package:wifi_iot/wifi_iot.dart";
+
+// Project imports:
+import "package:qr_code_gen/main.dart";
+import "package:qr_code_gen/utils/utils.dart";
 
 class ScanResult extends StatefulWidget {
-  final BarcodeFormat resultFormat;
-  final String resultText;
+  final Barcode barcode;
 
   const ScanResult({
     super.key,
-    required this.resultText,
-    required this.resultFormat,
+    required this.barcode,
   });
 
   @override
@@ -21,110 +25,206 @@ class ScanResult extends StatefulWidget {
 }
 
 class ScanResultState extends State<ScanResult> {
-  get resultFormat => widget.resultFormat.formatName;
-  get resultText => widget.resultText;
-
-  String getFormattedTimestamp() {
-    final now = DateTime.now();
-    final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-    return formatter.format(now);
-  }
-
   @override
   void initState() {
     super.initState();
-    ScanArchive scan = ScanArchive(timestamp: getFormattedTimestamp(), scanText: resultText);
-    DatabaseHelper.instance.insertScan(scan);
+
+    handleResult();
   }
 
-  List<String> findUrls(String text) {
-    if (text.startsWith('upi://')) {
-      return [text.split(' ')[0]];
+  void handleResult() {
+    if (widget.barcode.type == BarcodeType.url &&
+        widget.barcode.url != null &&
+        (prefs.getBool("autoOpenLinks") ?? false)) {
+      launchUrl(Uri.parse(widget.barcode.url!.url),
+          mode: LaunchMode.externalApplication);
     }
-    // Regular expression to match URLs
-    final urlRegExp = RegExp(
-      r'(?:(?:https?|ftp|upi):\/\/)?[\w/\-?=%.]+\.[\w/\-?=%.]+',
-      caseSensitive: false,
-    );
-
-    // Find all matches in the text
-    final matches = urlRegExp.allMatches(text);
-
-    // Extract the matched URLs into a list
-    return matches.map((match) => match.group(0) ?? '').toList();
   }
 
-  Future<void> _copyToClipboard(textData) async {
+  Future<void> _copyToClipboard(String textData) async {
     await Clipboard.setData(ClipboardData(text: textData));
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
-        content: const Text('Copied to clipboard'),
+        content: const Text("Copied to clipboard"),
         behavior: SnackBarBehavior.floating,
         backgroundColor: Theme.of(context).primaryColor,
       ),
     );
   }
 
-  Future<void> _launchUrl(String url) async {
-    final Uri url0 = Uri.parse(url);
-
-    if (!await launchUrl(url0, mode: LaunchMode.externalApplication)) {
-      throw Exception('Could not launch $url0');
-    }
-  }
-
-  String _resultType(String text) {
-    List links = findUrls(text);
-
-    if (links.isNotEmpty) {
-      String firstLink = links[0];
-      if (firstLink.startsWith('upi://')) {
-        return "UPI";
-      } else if (firstLink.startsWith("https://maps.google.com") ||
-          firstLink.startsWith("https://www.google.com/maps") ||
-          firstLink.startsWith("https://goo.gl/maps") ||
-          firstLink.startsWith("https://maps.app.goo.gl")) {
-        return "GMAPS";
-      } else {
-        return "URL";
-      }
-    } else {
-      return "TEXT";
-    }
-  }
-
-  Widget _myButton(BuildContext context) {
-    switch (_resultType(resultText)) {
-      case "UPI":
-        return const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.currency_rupee_rounded),
-            SizedBox(width: 8),
-            Text('Pay with UPI app'),
-          ],
+  Widget? _actionButton(BuildContext context) {
+    switch (widget.barcode.type) {
+      case BarcodeType.url:
+        return ElevatedButton.icon(
+          onPressed: () => launchUrl(Uri.parse(widget.barcode.url!.url),
+              mode: LaunchMode.externalApplication),
+          icon: const Icon(Icons.link_rounded),
+          label: const Text("Open link in browser"),
         );
-      case "GMAPS":
-        return const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.map_rounded),
-            SizedBox(width: 8),
-            Text('Navigate to location'),
-          ],
+      case BarcodeType.wifi:
+        //TODO Intermittenly not working
+        return ElevatedButton.icon(
+          onPressed: () {
+            print("Connecting to WiFi");
+
+            final WiFi? wifi = widget.barcode.wifi;
+
+            if (wifi == null || wifi.ssid == null) return;
+
+            if (wifi.password == null ||
+                wifi.password == "" ||
+                wifi.encryptionType == EncryptionType.none ||
+                wifi.encryptionType == EncryptionType.open) {
+              WiFiForIoTPlugin.registerWifiNetwork(wifi.ssid!);
+              return;
+            } else {
+              NetworkSecurity security = NetworkSecurity.NONE;
+              if (wifi.encryptionType == EncryptionType.wep) {
+                security = NetworkSecurity.WEP;
+              } else if (wifi.encryptionType == EncryptionType.wpa) {
+                security = NetworkSecurity.WPA;
+              }
+
+              WiFiForIoTPlugin.registerWifiNetwork(
+                wifi.ssid!,
+                password: wifi.password,
+                security: security,
+              );
+            }
+          },
+          icon: const Icon(Icons.wifi_rounded),
+          label: const Text("Connect to WiFi"),
         );
+      case BarcodeType.email:
+        return ElevatedButton.icon(
+          onPressed: () {
+            final Email? email = widget.barcode.email;
+
+            if (email != null) {
+              // Replace spaces with '%20' for subject and body
+              final String subject = email.subject ?? "";
+              final String body = email.body ?? "";
+
+              final Uri emailUri = Uri(
+                scheme: "mailto",
+                path: email.address,
+                query: encodeQueryParameters(<String, String>{
+                  "subject": subject,
+                  "body": body,
+                }),
+              );
+              launchUrl(emailUri, mode: LaunchMode.externalApplication);
+            }
+          },
+          icon: const Icon(Icons.email_rounded),
+          label: const Text("Send email"),
+        );
+      case BarcodeType.phone:
+        return ElevatedButton.icon(
+          onPressed: () {
+            final Phone? phone = widget.barcode.phone;
+
+            if (phone != null) {
+              launchUrl(
+                Uri(scheme: "tel", path: phone.number),
+                mode: LaunchMode.externalApplication,
+              );
+            }
+          },
+          icon: const Icon(Icons.phone_rounded),
+          label: const Text("Call"),
+        );
+      case BarcodeType.sms:
+        return ElevatedButton.icon(
+          onPressed: () {
+            final SMS? sms = widget.barcode.sms;
+
+            if (sms != null) {
+              launchUrl(
+                Uri(
+                  scheme: "sms",
+                  path: sms.phoneNumber,
+                  queryParameters: {"body": sms.message},
+                ),
+                mode: LaunchMode.externalApplication,
+              );
+            }
+          },
+          icon: const Icon(Icons.sms_rounded),
+          label: const Text("Send SMS"),
+        );
+      case BarcodeType.geo:
+        return ElevatedButton.icon(
+          onPressed: () {
+            final GeoPoint? geoPoint = widget.barcode.geoPoint;
+
+            if (geoPoint != null) {
+              launchUrl(
+                Uri(
+                  scheme: "geo",
+                  queryParameters: {
+                    "q": "${geoPoint.latitude},${geoPoint.longitude}",
+                  },
+                ),
+                mode: LaunchMode.externalApplication,
+              );
+            }
+          },
+          icon: const Icon(Icons.location_on_rounded),
+          label: const Text("Open in Maps"),
+        );
+      case BarcodeType.contactInfo:
+        //TODO Not working
+        return ElevatedButton.icon(
+          onPressed: () {
+            final ContactInfo? contactInfo = widget.barcode.contactInfo;
+
+            if (contactInfo != null) {
+              final Uri contactUri = Uri(
+                scheme: "content",
+                path: "contacts",
+                queryParameters: {
+                  "name": contactInfo.name,
+                  "phone": contactInfo.phones.join(","),
+                  "email": contactInfo.emails.join(","),
+                },
+              );
+              launchUrl(contactUri, mode: LaunchMode.externalApplication);
+            }
+          },
+          icon: const Icon(Icons.contact_page_rounded),
+          label: const Text("Add to Contacts"),
+        );
+      case BarcodeType.calendarEvent:
+        //TODO undefined
+        return ElevatedButton.icon(
+          onPressed: () {
+            final CalendarEvent? calendarEvent = widget.barcode.calendarEvent;
+
+            if (calendarEvent != null) {
+              final Uri calendarUri = Uri(
+                scheme: "content",
+                path: "calendar",
+                queryParameters: {
+                  "title": calendarEvent.summary,
+                  "description": calendarEvent.description,
+                  "location": calendarEvent.location,
+                  "start": calendarEvent.start?.toIso8601String(),
+                  "end": calendarEvent.end?.toIso8601String(),
+                },
+              );
+              launchUrl(calendarUri, mode: LaunchMode.externalApplication);
+            }
+          },
+          icon: const Icon(Icons.calendar_today_rounded),
+          label: const Text("Add to Calendar"),
+        );
+      case BarcodeType.text:
       default:
-        return const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.link_rounded),
-            SizedBox(width: 8),
-            Text('Open link in browser'),
-          ],
-        );
+        return null;
     }
   }
 
@@ -141,94 +241,137 @@ class ScanResultState extends State<ScanResult> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Scan Results',
+          "Scan Results",
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
           ),
         ),
       ),
-      body: SizedBox(
-        width: double.infinity,
-        height: double.infinity,
+      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(12.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 60),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  const Text(
-                    'Scan Type :',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                    ),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      const Text(
+                        "Code Format:",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
+                        decoration: BoxDecoration(
+                          border:
+                              Border.all(color: Theme.of(context).primaryColor),
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(20)),
+                        ),
+                        child: Text(
+                          widget.barcode.format.name.capitalize,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      const Text(
+                        "Data type:",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
+                        decoration: BoxDecoration(
+                          border:
+                              Border.all(color: Theme.of(context).primaryColor),
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(20)),
+                        ),
+                        child: Text(
+                          widget.barcode.type.name.capitalize,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
+                      // color: Theme.of(context).highlightColor,
                       border: Border.all(color: Theme.of(context).primaryColor),
-                      borderRadius: const BorderRadius.all(Radius.circular(10)),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(20),
+                      ),
                     ),
-                    child: Text(
-                      resultFormat,
+                    child: SelectableText(
+                      widget.barcode.displayValue ??
+                          widget.barcode.rawValue ??
+                          "No data found",
                       style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 30),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  // color: Theme.of(context).highlightColor,
-                  border: Border.all(color: Theme.of(context).primaryColor),
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(10),
-                  ),
                 ),
-                child: SelectableText(
-                  resultText,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w500,
+                const Padding(padding: EdgeInsets.only(top: 10)),
+                ElevatedButton(
+                  onPressed: () => _copyToClipboard(
+                    widget.barcode.displayValue ??
+                        widget.barcode.rawValue ??
+                        "",
                   ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => _copyToClipboard(resultText),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.copy_rounded),
-                      SizedBox(width: 8),
-                      Text('Copy'),
+                      Padding(padding: EdgeInsets.only(left: 8)),
+                      Text("Copy"),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              if (resultContainsLink) ...[
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => _launchUrl(url),
-                    child: _myButton(context),
+                const Padding(padding: EdgeInsets.only(top: 10)),
+                _actionButton(context) ?? Container(),
+                const Padding(padding: EdgeInsets.only(top: 10)),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.qr_code_scanner),
+                      Padding(padding: EdgeInsets.only(left: 8)),
+                      Text("Scan again"),
+                    ],
                   ),
-                )
-              ]
-            ],
+                ),
+                const Padding(padding: EdgeInsets.only(bottom: 16)),
+              ],
+            ),
           ),
         ),
       ),
