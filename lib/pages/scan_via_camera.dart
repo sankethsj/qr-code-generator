@@ -1,19 +1,24 @@
-import 'dart:io';
+// Dart imports:
+import "dart:io";
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:qr_code_gen/pages/scan_result.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
+// Flutter imports:
+import "package:flutter/material.dart";
+
+// Package imports:
+import "package:qr_code_scanner/qr_code_scanner.dart";
+
+// Project imports:
+import "package:qr_code_gen/pages/scan_result.dart";
 
 class CameraScanner extends StatefulWidget {
-  const CameraScanner({Key? key}) : super(key: key);
+  const CameraScanner({super.key});
 
   @override
   CameraScannerState createState() => CameraScannerState();
 }
 
 class CameraScannerState extends State<CameraScanner> {
-  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  final GlobalKey qrKey = GlobalKey(debugLabel: "QR");
   Barcode? result;
   QRViewController? controller;
 
@@ -34,7 +39,7 @@ class CameraScannerState extends State<CameraScanner> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Scan via Camera',
+          "Scan via Camera",
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
@@ -48,14 +53,12 @@ class CameraScannerState extends State<CameraScanner> {
             child: _buildQrView(context),
           ),
           Expanded(
-            flex: 1,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
-                const Text('Point your Camera towards a QR code'),
+                const Text("Point your Camera towards a QR code"),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
                     Container(
                       margin: const EdgeInsets.all(8),
@@ -72,15 +75,17 @@ class CameraScannerState extends State<CameraScanner> {
                               builder: (context, snapshot) {
                                 if (snapshot.data == true) {
                                   return const Icon(
-                                      Icons.flashlight_on_rounded);
+                                    Icons.flashlight_on_rounded,
+                                  );
                                 } else {
                                   return const Icon(
-                                      Icons.flashlight_off_rounded);
+                                    Icons.flashlight_off_rounded,
+                                  );
                                 }
                               },
                             ),
                             const SizedBox(width: 8),
-                            const Text('Flash'),
+                            const Text("Flash"),
                           ],
                         ),
                       ),
@@ -101,45 +106,43 @@ class CameraScannerState extends State<CameraScanner> {
                               future: controller?.getCameraInfo(),
                               builder: (context, snapshot) {
                                 if (snapshot.data != null) {
-                                  if (describeEnum(snapshot.data!) == "back") {
-                                    return const Text('Front Camera');
+                                  if (snapshot.data!.name == "back") {
+                                    return const Text("Front Camera");
                                   } else {
-                                    return const Text('Back Camera');
+                                    return const Text("Back Camera");
                                   }
                                 } else {
-                                  return const Text('Front Camera');
+                                  return const Text("Front Camera");
                                 }
                               },
                             ),
                           ],
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
   }
 
   Widget _buildQrView(BuildContext context) {
-    var scanArea = (MediaQuery.of(context).size.width < 400 ||
-            MediaQuery.of(context).size.height < 400)
-        ? 200.0
-        : 300.0;
+    final scanArea = (MediaQuery.of(context).size.width < 400 || MediaQuery.of(context).size.height < 400) ? 200.0 : 300.0;
 
     return QRView(
       key: qrKey,
       onQRViewCreated: _onQRViewCreated,
       overlay: QrScannerOverlayShape(
-          borderColor: Theme.of(context).primaryColor,
-          borderRadius: 10,
-          borderLength: 30,
-          borderWidth: 10,
-          cutOutSize: scanArea),
+        borderColor: Theme.of(context).primaryColor,
+        borderRadius: 10,
+        borderLength: 30,
+        borderWidth: 10,
+        cutOutSize: scanArea,
+      ),
       onPermissionSet: (ctrl, p) => _onPermissionSet(context, ctrl, p),
     );
   }
@@ -147,7 +150,7 @@ class CameraScannerState extends State<CameraScanner> {
   void _onPermissionSet(BuildContext context, QRViewController ctrl, bool p) {
     if (!p) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Camera Permission denied')),
+        const SnackBar(content: Text("Camera Permission denied")),
       );
     }
   }

@@ -1,14 +1,20 @@
-import 'dart:io';
+// Dart imports:
+import "dart:io";
 
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:qr_code_gen/pages/scan_result.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:scan/scan.dart';
+// Flutter imports:
+import "package:flutter/material.dart";
+import "package:flutter/services.dart";
+
+// Package imports:
+import "package:image_picker/image_picker.dart";
+import "package:qr_code_scanner/qr_code_scanner.dart";
+import "package:scan/scan.dart";
+
+// Project imports:
+import "package:qr_code_gen/pages/scan_result.dart";
 
 class ScanImage extends StatefulWidget {
-  const ScanImage({Key? key}) : super(key: key);
+  const ScanImage({super.key});
 
   @override
   ScanImageState createState() => ScanImageState();
@@ -33,7 +39,7 @@ class ScanImageState extends State<ScanImage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
-          content: Text('Failed to pick image: $e'),
+          content: Text("Failed to pick image: $e"),
           behavior: SnackBarBehavior.floating,
           backgroundColor: Theme.of(context).primaryColor,
         ),
@@ -62,7 +68,7 @@ class ScanImageState extends State<ScanImage> {
                 Navigator.of(context).pop();
               },
               child: const Text(
-                'CLOSE',
+                "CLOSE",
               ),
             ),
           ],
@@ -71,7 +77,7 @@ class ScanImageState extends State<ScanImage> {
     );
   }
 
-  Future handleOnScan(context) async {
+  Future handleOnScan(BuildContext context) async {
     final String? result = await Scan.parse(image!.path);
 
     if (result != null) {
@@ -98,7 +104,7 @@ class ScanImageState extends State<ScanImage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Scan Image',
+          "Scan Image",
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
@@ -131,12 +137,12 @@ class ScanImageState extends State<ScanImage> {
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: () => handleOnScan(context),
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Icon(Icons.image_search_rounded),
                           SizedBox(width: 8),
-                          Text('Scan this Image'),
+                          Text("Scan this Image"),
                         ],
                       ),
                     ),
@@ -145,12 +151,12 @@ class ScanImageState extends State<ScanImage> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: pickImage,
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Icon(Icons.photo_library_outlined),
                           SizedBox(width: 8),
-                          Text('Choose another Image'),
+                          Text("Choose another Image"),
                         ],
                       ),
                     ),
@@ -160,12 +166,12 @@ class ScanImageState extends State<ScanImage> {
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: pickImage,
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Icon(Icons.photo_library_outlined),
                           SizedBox(width: 8),
-                          Text('Select an Image'),
+                          Text("Select an Image"),
                         ],
                       ),
                     ),

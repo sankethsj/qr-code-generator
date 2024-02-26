@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// Flutter imports:
+import "package:flutter/material.dart";
+import "package:qr_code_gen/main.dart";
 
 class ThemePreference extends ChangeNotifier {
   ThemeMode _currentTheme = ThemeMode.system;
@@ -13,14 +14,13 @@ class ThemePreference extends ChangeNotifier {
     }
   }
 
-  toggleTheme() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+  Future<void> toggleTheme() async {
     if (_currentTheme == ThemeMode.light) {
       _currentTheme = ThemeMode.dark;
-      prefs.setBool('isDark', true);
+      prefs.setBool("isDark", true);
     } else {
       _currentTheme = ThemeMode.light;
-      prefs.setBool('isDark', false);
+      prefs.setBool("isDark", false);
     }
     notifyListeners();
   }

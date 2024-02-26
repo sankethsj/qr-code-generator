@@ -1,12 +1,19 @@
-import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:provider/provider.dart';
-import 'package:qr_code_gen/utils/theme_preference.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
+// Flutter imports:
+import "package:flutter/material.dart";
+
+// Package imports:
+import "package:package_info_plus/package_info_plus.dart";
+import "package:provider/provider.dart";
+import "package:url_launcher/url_launcher.dart";
+
+// Project imports:
+import "package:qr_code_gen/main.dart";
+import "package:qr_code_gen/utils/theme_preference.dart";
 
 class Settings extends StatefulWidget {
-  const Settings({Key? key}) : super(key: key);
+  const Settings({
+    super.key,
+  });
 
   @override
   SettingsState createState() => SettingsState();
@@ -14,21 +21,26 @@ class Settings extends StatefulWidget {
 
 class SettingsState extends State<Settings> {
   PackageInfo _packageInfo = PackageInfo(
-    appName: 'Unknown',
-    packageName: 'Unknown',
-    version: 'Unknown',
-    buildNumber: 'Unknown',
-    buildSignature: 'Unknown',
-    installerStore: 'Unknown',
+    appName: "Unknown",
+    packageName: "Unknown",
+    version: "Unknown",
+    buildNumber: "Unknown",
+    buildSignature: "Unknown",
+    installerStore: "Unknown",
   );
 
   bool isDarkTheme = false;
+  bool openCamOnStart = false;
+  bool autoOpenLinks = false;
 
   @override
   void initState() {
     super.initState();
     _initPackageInfo();
     checkIfDarkTheme();
+
+    openCamOnStart = prefs.getBool("openCamOnStart") ?? false;
+    autoOpenLinks = prefs.getBool("autoOpenLinks") ?? false;
   }
 
   Future<void> _initPackageInfo() async {
@@ -38,24 +50,22 @@ class SettingsState extends State<Settings> {
     });
   }
 
-  final Uri _url = Uri.parse('https://github.com/sankethsj/qr-code-generator');
+  final Uri _url = Uri.parse("https://github.com/FauconSpartiate/OmniQR");
 
   Future<void> _launchUrl() async {
     if (!await launchUrl(_url, mode: LaunchMode.externalApplication)) {
-      throw Exception('Could not launch $_url');
+      throw Exception("Could not launch $_url");
     }
   }
 
-  checkIfDarkTheme() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool isDark = prefs.getBool('isDark') ?? false;
+  Future<void> checkIfDarkTheme() async {
+    final bool isDark = prefs.getBool("isDark") ?? false;
     setState(() {
       isDarkTheme = isDark;
     });
   }
 
-  final MaterialStateProperty<Icon?> themeIcon =
-      MaterialStateProperty.resolveWith<Icon?>(
+  final MaterialStateProperty<Icon?> themeIcon = MaterialStateProperty.resolveWith<Icon?>(
     (Set<MaterialState> states) {
       if (states.contains(MaterialState.selected)) {
         return const Icon(Icons.dark_mode);
@@ -74,105 +84,126 @@ class SettingsState extends State<Settings> {
       onPressed: () {
         showModalBottomSheet<void>(
           isScrollControlled: true,
+          showDragHandle: true,
           context: context,
           builder: (BuildContext context) {
-            return StatefulBuilder(
-                builder: (BuildContext context, StateSetter setState) {
-              return SizedBox(
-                height: 400,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 10, 10, 20),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Settings',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
+            return DraggableScrollableSheet(
+              expand: false,
+              maxChildSize: 0.7,
+              minChildSize: 0.4,
+              builder: (context, scrollController) {
+                return StatefulBuilder(
+                  builder: (BuildContext context, StateSetter setState) {
+                    return SafeArea(
+                      top: false,
+                      maintainBottomViewPadding: true,
+                      child: ListView(
+                        controller: scrollController,
+                        children: <Widget>[
+                          Center(
+                            child: Column(
+                              children: [
+                                const Icon(
+                                  Icons.settings,
+                                  size: 32,
+                                ),
+                                const Padding(padding: EdgeInsets.only(top: 8, bottom: 8)),
+                                Text(
+                                  "Settings",
+                                  style: Theme.of(context).textTheme.headlineSmall,
+                                  textAlign: TextAlign.center,
+                                ),
+                                const Padding(padding: EdgeInsets.only(bottom: 8)),
+                              ],
                             ),
                           ),
-                          IconButton(
-                            onPressed: () => Navigator.pop(context),
-                            icon: Icon(
-                              Icons.close,
-                              size: 24.0,
-                              color: Theme.of(context).primaryColorDark,
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8, right: 8, top: 16, bottom: 32),
+                            child: Column(
+                              children: [
+                                Card(
+                                  child: ListTile(
+                                    leading: const Icon(Icons.dark_mode),
+                                    title: Text('Switch to ${isDarkTheme ? 'Light' : 'Dark'} mode'),
+                                    subtitle: Text('Current theme : ${isDarkTheme ? 'DARK' : 'LIGHT'}'),
+                                    trailing: Switch(
+                                      thumbIcon: themeIcon,
+                                      value: isDarkTheme,
+                                      onChanged: (bool value) {
+                                        final themePreference = Provider.of<ThemePreference>(context, listen: false);
+                                        themePreference.toggleTheme();
+
+                                        setState(() {
+                                          isDarkTheme = value;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                Card(
+                                  child: ListTile(
+                                    leading: const Icon(Icons.camera_alt_outlined),
+                                    title: const Text("Open camera on start"),
+                                    subtitle: const Text("Open camera on app start to scan QR codes"),
+                                    trailing: Switch(
+                                      value: openCamOnStart,
+                                      onChanged: (bool value) {
+                                        prefs.setBool("openCamOnStart", value);
+
+                                        setState(() {
+                                          openCamOnStart = value;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                Card(
+                                  child: ListTile(
+                                    leading: const Icon(Icons.open_in_new),
+                                    title: const Text("Automatically open links"),
+                                    subtitle: const Text("Automatically open links in the default browser"),
+                                    trailing: Switch(
+                                      value: autoOpenLinks,
+                                      onChanged: (bool value) {
+                                        prefs.setBool("autoOpenLinks", value);
+
+                                        setState(() {
+                                          autoOpenLinks = value;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                Card(
+                                  child: ListTile(
+                                    splashColor: Theme.of(context).splashColor,
+                                    onTap: _launchUrl,
+                                    leading: const Icon(Icons.folder_copy_outlined),
+                                    title: const Text("Github"),
+                                    subtitle: const Text(
+                                      "Checkout the source code",
+                                      style: TextStyle(fontWeight: FontWeight.w100),
+                                    ),
+                                  ),
+                                ),
+                                ListTile(
+                                  leading: const Icon(Icons.build_circle_outlined),
+                                  title: const Text("Version"),
+                                  subtitle: Text(
+                                    "${_packageInfo.version} (build : ${_packageInfo.buildNumber})",
+                                    style: const TextStyle(fontWeight: FontWeight.w100),
+                                  ),
+                                ),
+                              ],
                             ),
-                          )
+                          ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 5),
-                    Container(
-                      margin: const EdgeInsets.fromLTRB(20, 5, 20, 5),
-                      decoration: BoxDecoration(
-                          color: Theme.of(context).canvasColor,
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(20),
-                          )),
-                      child: ListTile(
-                        leading: const Icon(Icons.lightbulb_outline),
-                        title: Text(
-                            'Switch to ${isDarkTheme ? 'Light' : 'Dark'} mode'),
-                        subtitle: Text(
-                            'Current theme : ${isDarkTheme ? 'DARK' : 'LIGHT'}'),
-                        trailing: Switch(
-                          thumbIcon: themeIcon,
-                          value: isDarkTheme,
-                          onChanged: (bool value) {
-                            final themePreference =
-                                Provider.of<ThemePreference>(context,
-                                    listen: false);
-                            themePreference.toggleTheme();
-
-                            setState(() => {isDarkTheme = !isDarkTheme});
-                          },
-                        ),
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.fromLTRB(20, 5, 20, 5),
-                      decoration: BoxDecoration(
-                          color: Theme.of(context).canvasColor,
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(20),
-                          )),
-                      child: ListTile(
-                        splashColor: Theme.of(context).splashColor,
-                        onTap: _launchUrl,
-                        leading: const Icon(Icons.folder_copy_outlined),
-                        title: const Text('Github'),
-                        subtitle: const Text(
-                          'Checkout the source code',
-                          style: TextStyle(fontWeight: FontWeight.w100),
-                        ),
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.fromLTRB(20, 5, 20, 5),
-                      decoration: BoxDecoration(
-                          color: Theme.of(context).canvasColor,
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(20),
-                          )),
-                      child: ListTile(
-                        leading: const Icon(Icons.build_circle_outlined),
-                        title: const Text('Version'),
-                        subtitle: Text(
-                          '${_packageInfo.version} (build : ${_packageInfo.buildNumber})',
-                          style: const TextStyle(fontWeight: FontWeight.w100),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            });
+                    );
+                  },
+                );
+              },
+            );
           },
         );
       },
