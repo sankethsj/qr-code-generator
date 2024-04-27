@@ -7,7 +7,6 @@ import "dart:ui" as ui;
 import "package:flutter/material.dart";
 
 // Package imports:
-import "package:gallery_saver/gallery_saver.dart";
 import "package:path_provider/path_provider.dart";
 import "package:qr_flutter/qr_flutter.dart";
 import "package:share_plus/share_plus.dart";
@@ -49,8 +48,6 @@ class QrGeneratorState extends State<QrGenerator> {
       data: _controller.text,
       gapless: true,
       version: QrVersions.auto,
-      color: Colors.black,
-      emptyColor: Colors.white,
     ).toImage(qrImageSize);
 
     final recorder = ui.PictureRecorder();
@@ -111,9 +108,9 @@ class QrGeneratorState extends State<QrGenerator> {
     String message;
 
     try {
-      final String qrFilePath = await createQrFile();
+      //final String qrFilePath = await createQrFile();
 
-      await GallerySaver.saveImage(qrFilePath);
+      //TODO await GallerySaver.saveImage(qrFilePath);
 
       status = "Success";
       message = "Successfully saved to Gallery";
@@ -215,7 +212,6 @@ class QrGeneratorState extends State<QrGenerator> {
                   color: Colors.white,
                 ),
                 child: QrImageView(
-                  foregroundColor: Colors.black,
                   data: _controller.text,
                   size: 360,
                   padding: const EdgeInsets.all(16),

@@ -1,11 +1,12 @@
-// Flutter imports:
+// Dart imports:
 import "dart:io";
 
+// Flutter imports:
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 
 // Package imports:
-import "package:qr_code_scanner/qr_code_scanner.dart";
+import "package:mobile_scanner/mobile_scanner.dart";
 import "package:url_launcher/url_launcher.dart";
 
 // Project imports:
@@ -26,7 +27,7 @@ class ScanResult extends StatefulWidget {
 }
 
 class ScanResultState extends State<ScanResult> {
-  String get resultFormat => widget.resultFormat.formatName;
+  String get resultFormat => widget.resultFormat.name;
   late Future<String?> resultTextFuture;
   late String resultText = widget.resultText;
 
@@ -114,27 +115,30 @@ class ScanResultState extends State<ScanResult> {
       case "UPI":
         return const Row(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.currency_rupee_rounded),
-            SizedBox(width: 8),
+            Padding(padding: EdgeInsets.only(left: 8)),
             Text("Pay with UPI app"),
           ],
         );
       case "GMAPS":
         return const Row(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.map_rounded),
-            SizedBox(width: 8),
+            Padding(padding: EdgeInsets.only(left: 8)),
             Text("Navigate to location"),
           ],
         );
       default:
         return const Row(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.link_rounded),
-            SizedBox(width: 8),
+            Padding(padding: EdgeInsets.only(left: 8)),
             Text("Open link in browser"),
           ],
         );
@@ -157,7 +161,7 @@ class ScanResultState extends State<ScanResult> {
         padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
-            const SizedBox(height: 60),
+            const Padding(padding: EdgeInsets.only(top: 60)),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -184,9 +188,8 @@ class ScanResultState extends State<ScanResult> {
                 ),
               ],
             ),
-            const SizedBox(height: 60),
+            const Padding(padding: EdgeInsets.only(top: 60)),
             Container(
-              width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 // color: Theme.of(context).highlightColor,
@@ -203,36 +206,41 @@ class ScanResultState extends State<ScanResult> {
                 ),
               ),
             ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => _copyToClipboard(resultText),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.copy_rounded),
-                    SizedBox(width: 8),
-                    Text("Copy"),
-                  ],
-                ),
+            const Padding(padding: EdgeInsets.only(top: 10)),
+            ElevatedButton(
+              onPressed: () => _copyToClipboard(resultText),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.copy_rounded),
+                  Padding(padding: EdgeInsets.only(left: 8)),
+                  Text("Copy"),
+                ],
               ),
             ),
-            const SizedBox(height: 10),
-            if (_textIsLink(resultText)) ...[
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => _launchUrl(resultText),
-                  child: FutureBuilder(
-                    future: _myButton(context),
-                    builder: (context, value) {
-                      return value.data ?? const Text("Open link in browser");
-                    },
-                  ),
+            const Padding(padding: EdgeInsets.only(top: 10)),
+            if (_textIsLink(resultText))
+              ElevatedButton(
+                onPressed: () => _launchUrl(resultText),
+                child: FutureBuilder(
+                  future: _myButton(context),
+                  builder: (context, value) {
+                    return value.data ?? const Text("Open link in browser");
+                  },
                 ),
               ),
-            ],
+            const Padding(padding: EdgeInsets.only(top: 10)),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.qr_code_scanner),
+                  Padding(padding: EdgeInsets.only(left: 8)),
+                  Text("Scan again"),
+                ],
+              ),
+            ),
           ],
         ),
       ),

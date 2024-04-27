@@ -7,8 +7,7 @@ import "package:flutter/services.dart";
 
 // Package imports:
 import "package:image_picker/image_picker.dart";
-import "package:qr_code_scanner/qr_code_scanner.dart";
-import "package:scan/scan.dart";
+import "package:mobile_scanner/mobile_scanner.dart";
 
 // Project imports:
 import "package:qr_code_gen/pages/scan_result.dart";
@@ -22,11 +21,20 @@ class ScanImage extends StatefulWidget {
 
 class ScanImageState extends State<ScanImage> {
   File? image;
+  MobileScannerController controller = MobileScannerController(
+    formats: const [BarcodeFormat.qrCode],
+  );
 
   @override
   void initState() {
     super.initState();
     pickImage();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
   }
 
   Future pickImage() async {
@@ -78,16 +86,18 @@ class ScanImageState extends State<ScanImage> {
   }
 
   Future handleOnScan(BuildContext context) async {
-    final String? result = await Scan.parse(image!.path);
+    final BarcodeCapture? barcodes = await controller.analyzeImage(
+      image!.path,
+    );
 
-    if (result != null) {
-      if (result.trim() != "") {
+    if (barcodes != null && barcodes.barcodes.isNotEmpty) {
+      if (barcodes.barcodes.first.displayValue?.trim() != "") {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => ScanResult(
-              resultFormat: BarcodeFormat.qrcode,
-              resultText: result,
+              resultFormat: BarcodeFormat.qrCode,
+              resultText: barcodes.barcodes.first.displayValue ?? "No data found!",
             ),
           ),
         );

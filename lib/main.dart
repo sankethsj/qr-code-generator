@@ -1,25 +1,27 @@
-// Flutter imports:
+// Dart imports:
 import "dart:io";
 
-import "package:device_info_plus/device_info_plus.dart";
-import "package:dynamic_color/dynamic_color.dart";
+// Flutter imports:
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
-import "package:flutter_displaymode/flutter_displaymode.dart";
 
 // Package imports:
+import "package:device_info_plus/device_info_plus.dart";
+import "package:dynamic_color/dynamic_color.dart";
+import "package:flutter_displaymode/flutter_displaymode.dart";
 import "package:provider/provider.dart";
-import "package:qr_code_gen/utils/app_theme.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
 // Project imports:
 import "package:qr_code_gen/pages/qr_generator.dart";
 import "package:qr_code_gen/pages/qr_scanner.dart";
 import "package:qr_code_gen/settings.dart";
+import "package:qr_code_gen/utils/app_theme.dart";
 import "package:qr_code_gen/utils/theme_preference.dart";
 
 final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
 late final SharedPreferences prefs;
+// ignore: unreachable_from_main
 bool isLaunch = true;
 
 void main() async {
