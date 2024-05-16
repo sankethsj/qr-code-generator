@@ -65,9 +65,9 @@ class SettingsState extends State<Settings> {
     });
   }
 
-  final MaterialStateProperty<Icon?> themeIcon = MaterialStateProperty.resolveWith<Icon?>(
-    (Set<MaterialState> states) {
-      if (states.contains(MaterialState.selected)) {
+  final WidgetStateProperty<Icon?> themeIcon = WidgetStateProperty.resolveWith<Icon?>(
+    (Set<WidgetState> states) {
+      if (states.contains(WidgetState.selected)) {
         return const Icon(Icons.dark_mode);
       }
       return const Icon(Icons.light_mode);
