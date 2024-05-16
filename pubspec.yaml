@@ -25,10 +25,8 @@ dependencies:
   url_launcher: ^6.1.10
 
 dev_dependencies:
-  dependency_validator: ^3.0.0
+  dependency_validator: ^4.0.0
   flutter_native_splash: ^2.2.0
-  flutter_test:
-    sdk: flutter
   icons_launcher: ^2.1.0
   import_sorter: ^4.6.0
   lint: ^2.0.0
