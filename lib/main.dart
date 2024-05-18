@@ -69,7 +69,7 @@ class MainState extends State<Main> {
               home: Scaffold(
                 appBar: AppBar(
                   title: const Text(
-                    "OmniQR",
+                    "MyQR",
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
                     ),

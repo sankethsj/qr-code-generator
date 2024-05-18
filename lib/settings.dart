@@ -50,7 +50,7 @@ class SettingsState extends State<Settings> {
     });
   }
 
-  final Uri _url = Uri.parse("https://github.com/FauconSpartiate/OmniQR");
+  final Uri _url = Uri.parse("https://github.com/sankethsj/qr-code-generator");
 
   Future<void> _launchUrl() async {
     if (!await launchUrl(_url, mode: LaunchMode.externalApplication)) {

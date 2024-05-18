@@ -5,18 +5,18 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "OmniQR",
+			"name": "MyQR",
 			"request": "launch",
 			"type": "dart"
 		},
 		{
-			"name": "OmniQR (profile mode)",
+			"name": "MyQR (profile mode)",
 			"request": "launch",
 			"type": "dart",
 			"flutterMode": "profile"
 		},
 		{
-			"name": "OmniQR (release mode)",
+			"name": "MyQR (release mode)",
 			"request": "launch",
 			"type": "dart",
 			"flutterMode": "release"
