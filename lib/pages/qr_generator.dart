@@ -36,7 +36,8 @@ class QrGeneratorState extends State<QrGenerator> {
   Future<void> writeToFile(ByteData data, String path) async {
     final buffer = data.buffer;
     await File(path).writeAsBytes(
-        buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
+      buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+    );
   }
 
   Future<String> createQrFile() async {
@@ -152,8 +153,11 @@ class QrGeneratorState extends State<QrGenerator> {
   Future shareQrCode() async {
     final String path = await createQrFile();
 
-    await Share.shareXFiles([XFile(path, mimeType: "image/png")],
-        subject: "Checkout my QR code", text: "Please scan me");
+    await Share.shareXFiles(
+      [XFile(path, mimeType: "image/png")],
+      subject: "Checkout my QR code",
+      text: "Please scan me",
+    );
   }
 
   @override
@@ -186,7 +190,9 @@ class QrGeneratorState extends State<QrGenerator> {
             child: TextField(
               controller: _controller,
               style: TextStyle(
-                  color: Theme.of(context).primaryColor, fontSize: 16.0),
+                color: Theme.of(context).primaryColor,
+                fontSize: 16.0,
+              ),
               decoration: InputDecoration(
                 border: const OutlineInputBorder(),
                 enabledBorder: OutlineInputBorder(

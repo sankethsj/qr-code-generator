@@ -12,7 +12,10 @@ class AppTheme {
   static late bool hasDynamicColor;
 
   static ThemeData getTheme(
-      Brightness brightness, ColorScheme? light, ColorScheme? dark) {
+    Brightness brightness,
+    ColorScheme? light,
+    ColorScheme? dark,
+  ) {
     lightColorScheme = light;
     darkColorScheme = dark;
     hasDynamicColor = light != null;
@@ -131,7 +134,10 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.fixed,
         backgroundColor: ElevationOverlay.applySurfaceTint(
-            colorScheme.inverseSurface, colorScheme.surfaceTint, 3),
+          colorScheme.inverseSurface,
+          colorScheme.surfaceTint,
+          3,
+        ),
         contentTextStyle: theme.textTheme.bodyMedium?.copyWith(
           color: colorScheme.onInverseSurface,
         ),

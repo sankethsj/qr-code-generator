@@ -27,9 +27,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   prefs = await SharedPreferences.getInstance();
 
-  runApp(Main(
-    key: appContainerKey,
-  ));
+  runApp(
+    Main(
+      key: appContainerKey,
+    ),
+  );
 }
 
 class Main extends StatefulWidget {

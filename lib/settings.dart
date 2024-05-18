@@ -105,8 +105,8 @@ class SettingsState extends State<Settings> {
                                   size: 32,
                                 ),
                                 const Padding(
-                                    padding:
-                                        EdgeInsets.only(top: 8, bottom: 8)),
+                                  padding: EdgeInsets.only(top: 8, bottom: 8),
+                                ),
                                 Text(
                                   "Settings",
                                   style:
@@ -114,13 +114,18 @@ class SettingsState extends State<Settings> {
                                   textAlign: TextAlign.center,
                                 ),
                                 const Padding(
-                                    padding: EdgeInsets.only(bottom: 8)),
+                                  padding: EdgeInsets.only(bottom: 8),
+                                ),
                               ],
                             ),
                           ),
                           Padding(
                             padding: const EdgeInsets.only(
-                                left: 8, right: 8, top: 16, bottom: 32),
+                              left: 8,
+                              right: 8,
+                              top: 16,
+                              bottom: 32,
+                            ),
                             child: Column(
                               children: [
                                 Card(
@@ -130,7 +135,8 @@ class SettingsState extends State<Settings> {
                                         leading: const Icon(Icons.dark_mode),
                                         title: const Text("Theme"),
                                         subtitle: Text(
-                                            "Current theme : ${theme.name.capitalize}"),
+                                          "Current theme : ${theme.name.capitalize}",
+                                        ),
                                         onTap: () {
                                           final RenderBox listTileRenderBox =
                                               context.findRenderObject()!
@@ -144,13 +150,15 @@ class SettingsState extends State<Settings> {
                                               RelativeRect.fromRect(
                                             Rect.fromPoints(
                                               listTileRenderBox.localToGlobal(
-                                                  listTileRenderBox.size
-                                                      .centerRight(Offset.zero),
-                                                  ancestor: overlayRenderBox),
+                                                listTileRenderBox.size
+                                                    .centerRight(Offset.zero),
+                                                ancestor: overlayRenderBox,
+                                              ),
                                               listTileRenderBox.localToGlobal(
-                                                  listTileRenderBox.size
-                                                      .bottomRight(Offset.zero),
-                                                  ancestor: overlayRenderBox),
+                                                listTileRenderBox.size
+                                                    .bottomRight(Offset.zero),
+                                                ancestor: overlayRenderBox,
+                                              ),
                                             ),
                                             Offset.zero & overlayRenderBox.size,
                                           );
@@ -175,7 +183,9 @@ class SettingsState extends State<Settings> {
                                           ).then((ThemeMode? value) {
                                             if (value != null) {
                                               prefs.setString(
-                                                  "theme", value.name);
+                                                "theme",
+                                                value.name,
+                                              );
                                               setState(() {
                                                 theme = value;
                                               });
@@ -193,7 +203,8 @@ class SettingsState extends State<Settings> {
                                         const Icon(Icons.camera_alt_outlined),
                                     title: const Text("Open camera on start"),
                                     subtitle: const Text(
-                                        "Open camera on app start to scan QR codes"),
+                                      "Open camera on app start to scan QR codes",
+                                    ),
                                     trailing: Switch(
                                       value: openCamOnStart,
                                       onChanged: (bool value) {
@@ -212,7 +223,8 @@ class SettingsState extends State<Settings> {
                                     title:
                                         const Text("Automatically open links"),
                                     subtitle: const Text(
-                                        "Automatically open links in the default browser"),
+                                      "Automatically open links in the default browser",
+                                    ),
                                     trailing: Switch(
                                       value: autoOpenLinks,
                                       onChanged: (bool value) {
@@ -235,7 +247,8 @@ class SettingsState extends State<Settings> {
                                     subtitle: const Text(
                                       "Checkout the source code",
                                       style: TextStyle(
-                                          fontWeight: FontWeight.w100),
+                                        fontWeight: FontWeight.w100,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -246,7 +259,8 @@ class SettingsState extends State<Settings> {
                                   subtitle: Text(
                                     "${_packageInfo.version} (build : ${_packageInfo.buildNumber})",
                                     style: const TextStyle(
-                                        fontWeight: FontWeight.w100),
+                                      fontWeight: FontWeight.w100,
+                                    ),
                                   ),
                                 ),
                               ],
