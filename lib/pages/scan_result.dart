@@ -1,6 +1,3 @@
-// Dart imports:
-import "dart:io";
-
 // Flutter imports:
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
@@ -39,14 +36,6 @@ class ScanResultState extends State<ScanResult> {
   }
 
   Future<void> handleResult() async {
-    resultTextFuture = getFinalDestinationUrl(widget.resultText);
-
-    resultTextFuture.then((value) {
-      if (value != null) {
-        resultText = value;
-      }
-    });
-
     if (_textIsLink(resultText) && (prefs.getBool("autoOpenLinks") ?? false)) {
       await _launchUrl(resultText);
     }
@@ -80,15 +69,6 @@ class ScanResultState extends State<ScanResult> {
     } catch (e) {
       return false;
     }
-  }
-
-  Future<String?> getFinalDestinationUrl(String url) async {
-    final client = HttpClient();
-    final uri = Uri.parse(url);
-    final request = await client.getUrl(uri);
-    request.followRedirects = false;
-    final response = await request.close();
-    return response.headers.value(HttpHeaders.locationHeader);
   }
 
   Future<String> _resultType(String text) async {
