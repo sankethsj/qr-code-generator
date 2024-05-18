@@ -97,7 +97,8 @@ class ScanImageState extends State<ScanImage> {
           MaterialPageRoute(
             builder: (context) => ScanResult(
               resultFormat: BarcodeFormat.qrCode,
-              resultText: barcodes.barcodes.first.displayValue ?? "No data found!",
+              resultText:
+                  barcodes.barcodes.first.displayValue ?? "No data found!",
             ),
           ),
         );

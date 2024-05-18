@@ -11,12 +11,14 @@ class AppTheme {
   static ColorScheme? darkColorScheme;
   static late bool hasDynamicColor;
 
-  static ThemeData getTheme(Brightness brightness, ColorScheme? light, ColorScheme? dark) {
+  static ThemeData getTheme(
+      Brightness brightness, ColorScheme? light, ColorScheme? dark) {
     lightColorScheme = light;
     darkColorScheme = dark;
     hasDynamicColor = light != null;
 
-    final ColorScheme colorScheme = brightness == Brightness.light ? lightTheme() : darkTheme();
+    final ColorScheme colorScheme =
+        brightness == Brightness.light ? lightTheme() : darkTheme();
 
     ThemeData theme;
     String? fontFamily = "Raleway";
@@ -128,7 +130,8 @@ class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.fixed,
-        backgroundColor: ElevationOverlay.applySurfaceTint(colorScheme.inverseSurface, colorScheme.surfaceTint, 3),
+        backgroundColor: ElevationOverlay.applySurfaceTint(
+            colorScheme.inverseSurface, colorScheme.surfaceTint, 3),
         contentTextStyle: theme.textTheme.bodyMedium?.copyWith(
           color: colorScheme.onInverseSurface,
         ),
@@ -144,7 +147,8 @@ class AppTheme {
         foregroundColor: theme.appBarTheme.foregroundColor,
         iconTheme: theme.appBarTheme.iconTheme,
         shadowColor: theme.appBarTheme.shadowColor,
-        titleSpacing: theme.appBarTheme.titleSpacing, scrolledUnderElevation: theme.appBarTheme.scrolledUnderElevation,
+        titleSpacing: theme.appBarTheme.titleSpacing,
+        scrolledUnderElevation: theme.appBarTheme.scrolledUnderElevation,
         shape: theme.appBarTheme.shape,
         surfaceTintColor: theme.appBarTheme.surfaceTintColor,
         toolbarHeight: theme.appBarTheme.toolbarHeight,
@@ -168,7 +172,8 @@ class AppTheme {
   static ColorScheme lightTheme() {
     const seedColor = Color(0xFF2196f3);
 
-    final ColorScheme scheme = lightColorScheme ?? ColorScheme.fromSeed(seedColor: seedColor);
+    final ColorScheme scheme =
+        lightColorScheme ?? ColorScheme.fromSeed(seedColor: seedColor);
 
     return scheme;
   }
@@ -176,7 +181,8 @@ class AppTheme {
   static ColorScheme darkTheme() {
     const seedColor = Color(0xFF2196f3);
 
-    final ColorScheme scheme = darkColorScheme ?? ColorScheme.fromSeed(seedColor: seedColor, brightness: Brightness.dark);
+    final ColorScheme scheme = darkColorScheme ??
+        ColorScheme.fromSeed(seedColor: seedColor, brightness: Brightness.dark);
 
     return scheme;
   }

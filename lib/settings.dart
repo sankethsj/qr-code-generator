@@ -65,7 +65,8 @@ class SettingsState extends State<Settings> {
     });
   }
 
-  final WidgetStateProperty<Icon?> themeIcon = WidgetStateProperty.resolveWith<Icon?>(
+  final WidgetStateProperty<Icon?> themeIcon =
+      WidgetStateProperty.resolveWith<Icon?>(
     (Set<WidgetState> states) {
       if (states.contains(WidgetState.selected)) {
         return const Icon(Icons.dark_mode);
@@ -107,30 +108,40 @@ class SettingsState extends State<Settings> {
                                   Icons.settings,
                                   size: 32,
                                 ),
-                                const Padding(padding: EdgeInsets.only(top: 8, bottom: 8)),
+                                const Padding(
+                                    padding:
+                                        EdgeInsets.only(top: 8, bottom: 8)),
                                 Text(
                                   "Settings",
-                                  style: Theme.of(context).textTheme.headlineSmall,
+                                  style:
+                                      Theme.of(context).textTheme.headlineSmall,
                                   textAlign: TextAlign.center,
                                 ),
-                                const Padding(padding: EdgeInsets.only(bottom: 8)),
+                                const Padding(
+                                    padding: EdgeInsets.only(bottom: 8)),
                               ],
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.only(left: 8, right: 8, top: 16, bottom: 32),
+                            padding: const EdgeInsets.only(
+                                left: 8, right: 8, top: 16, bottom: 32),
                             child: Column(
                               children: [
                                 Card(
                                   child: ListTile(
                                     leading: const Icon(Icons.dark_mode),
-                                    title: Text('Switch to ${isDarkTheme ? 'Light' : 'Dark'} mode'),
-                                    subtitle: Text('Current theme : ${isDarkTheme ? 'DARK' : 'LIGHT'}'),
+                                    title: Text(
+                                        'Switch to ${isDarkTheme ? 'Light' : 'Dark'} mode'),
+                                    subtitle: Text(
+                                        'Current theme : ${isDarkTheme ? 'DARK' : 'LIGHT'}'),
                                     trailing: Switch(
                                       thumbIcon: themeIcon,
                                       value: isDarkTheme,
                                       onChanged: (bool value) {
-                                        final themePreference = Provider.of<ThemePreference>(context, listen: false);
+                                        final themePreference =
+                                            Provider.of<ThemePreference>(
+                                                context,
+                                                listen: false);
                                         themePreference.toggleTheme();
 
                                         setState(() {
@@ -142,9 +153,11 @@ class SettingsState extends State<Settings> {
                                 ),
                                 Card(
                                   child: ListTile(
-                                    leading: const Icon(Icons.camera_alt_outlined),
+                                    leading:
+                                        const Icon(Icons.camera_alt_outlined),
                                     title: const Text("Open camera on start"),
-                                    subtitle: const Text("Open camera on app start to scan QR codes"),
+                                    subtitle: const Text(
+                                        "Open camera on app start to scan QR codes"),
                                     trailing: Switch(
                                       value: openCamOnStart,
                                       onChanged: (bool value) {
@@ -160,8 +173,10 @@ class SettingsState extends State<Settings> {
                                 Card(
                                   child: ListTile(
                                     leading: const Icon(Icons.open_in_new),
-                                    title: const Text("Automatically open links"),
-                                    subtitle: const Text("Automatically open links in the default browser"),
+                                    title:
+                                        const Text("Automatically open links"),
+                                    subtitle: const Text(
+                                        "Automatically open links in the default browser"),
                                     trailing: Switch(
                                       value: autoOpenLinks,
                                       onChanged: (bool value) {
@@ -178,20 +193,24 @@ class SettingsState extends State<Settings> {
                                   child: ListTile(
                                     splashColor: Theme.of(context).splashColor,
                                     onTap: _launchUrl,
-                                    leading: const Icon(Icons.folder_copy_outlined),
+                                    leading:
+                                        const Icon(Icons.folder_copy_outlined),
                                     title: const Text("Github"),
                                     subtitle: const Text(
                                       "Checkout the source code",
-                                      style: TextStyle(fontWeight: FontWeight.w100),
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w100),
                                     ),
                                   ),
                                 ),
                                 ListTile(
-                                  leading: const Icon(Icons.build_circle_outlined),
+                                  leading:
+                                      const Icon(Icons.build_circle_outlined),
                                   title: const Text("Version"),
                                   subtitle: Text(
                                     "${_packageInfo.version} (build : ${_packageInfo.buildNumber})",
-                                    style: const TextStyle(fontWeight: FontWeight.w100),
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w100),
                                   ),
                                 ),
                               ],

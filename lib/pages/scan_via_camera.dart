@@ -21,7 +21,8 @@ class CameraScanner extends StatefulWidget {
   CameraScannerState createState() => CameraScannerState();
 }
 
-class CameraScannerState extends State<CameraScanner> with WidgetsBindingObserver {
+class CameraScannerState extends State<CameraScanner>
+    with WidgetsBindingObserver {
   final GlobalKey qrKey = GlobalKey(debugLabel: "QR");
   Barcode? result;
   final MobileScannerController controller = MobileScannerController(
@@ -181,13 +182,19 @@ class CameraScannerState extends State<CameraScanner> with WidgetsBindingObserve
   }
 
   Widget _buildQrView(BuildContext context) {
-    final windowSize = (MediaQuery.of(context).size.width < 400 || MediaQuery.of(context).size.height < 400) ? 300.0 : 450.0;
+    final windowSize = (MediaQuery.of(context).size.width < 400 ||
+            MediaQuery.of(context).size.height < 400)
+        ? 300.0
+        : 450.0;
     final scanWindow = Rect.fromCenter(
       center: MediaQuery.sizeOf(context).center(const Offset(0, -100)),
       width: windowSize,
       height: windowSize,
     );
-    final overlaySize = (MediaQuery.of(context).size.width < 400 || MediaQuery.of(context).size.height < 400) ? 200.0 : 350.0;
+    final overlaySize = (MediaQuery.of(context).size.width < 400 ||
+            MediaQuery.of(context).size.height < 400)
+        ? 200.0
+        : 350.0;
     final overlayWindow = Rect.fromCenter(
       center: MediaQuery.sizeOf(context).center(const Offset(0, -100)),
       width: overlaySize,
@@ -207,7 +214,9 @@ class CameraScannerState extends State<CameraScanner> with WidgetsBindingObserve
         ValueListenableBuilder(
           valueListenable: controller,
           builder: (context, value, child) {
-            if (!value.isInitialized || !value.isRunning || value.error != null) {
+            if (!value.isInitialized ||
+                !value.isRunning ||
+                value.error != null) {
               return const SizedBox();
             }
 

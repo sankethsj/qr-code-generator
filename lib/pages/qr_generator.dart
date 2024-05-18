@@ -35,7 +35,8 @@ class QrGeneratorState extends State<QrGenerator> {
 
   Future<void> writeToFile(ByteData data, String path) async {
     final buffer = data.buffer;
-    await File(path).writeAsBytes(buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
+    await File(path).writeAsBytes(
+        buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
   }
 
   Future<String> createQrFile() async {
@@ -52,7 +53,8 @@ class QrGeneratorState extends State<QrGenerator> {
 
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
-    final rect = Rect.fromPoints(Offset.zero, const Offset(imageSize, imageSize));
+    final rect =
+        Rect.fromPoints(Offset.zero, const Offset(imageSize, imageSize));
     final paint = Paint()
       ..isAntiAlias = true
       ..style = PaintingStyle.fill
@@ -61,9 +63,12 @@ class QrGeneratorState extends State<QrGenerator> {
 
     // Draw the image in the center.
     canvas.drawImage(qrImage, const Offset(margin, margin), Paint());
-    final image = await recorder.endRecording().toImage(imageSize.toInt(), imageSize.toInt());
+    final image = await recorder
+        .endRecording()
+        .toImage(imageSize.toInt(), imageSize.toInt());
 
-    final ByteData? picData = await image.toByteData(format: ui.ImageByteFormat.png);
+    final ByteData? picData =
+        await image.toByteData(format: ui.ImageByteFormat.png);
 
     // final qrValidationResult = QrValidator.validate(
     //   data: _controller.text,
@@ -147,7 +152,8 @@ class QrGeneratorState extends State<QrGenerator> {
   Future shareQrCode() async {
     final String path = await createQrFile();
 
-    await Share.shareXFiles([XFile(path, mimeType: "image/png")], subject: "Checkout my QR code", text: "Please scan me");
+    await Share.shareXFiles([XFile(path, mimeType: "image/png")],
+        subject: "Checkout my QR code", text: "Please scan me");
   }
 
   @override
@@ -179,11 +185,13 @@ class QrGeneratorState extends State<QrGenerator> {
             padding: const EdgeInsets.all(10.0),
             child: TextField(
               controller: _controller,
-              style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 16.0),
+              style: TextStyle(
+                  color: Theme.of(context).primaryColor, fontSize: 16.0),
               decoration: InputDecoration(
                 border: const OutlineInputBorder(),
                 enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
+                  borderSide:
+                      BorderSide(color: Theme.of(context).primaryColorDark),
                 ),
                 labelText: "Enter your text",
                 suffixIcon: _isTextFieldEmpty

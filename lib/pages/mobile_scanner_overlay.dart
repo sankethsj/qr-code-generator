@@ -62,6 +62,7 @@ class ScannerOverlay extends CustomPainter {
 
   @override
   bool shouldRepaint(ScannerOverlay oldDelegate) {
-    return scanWindow != oldDelegate.scanWindow || borderRadius != oldDelegate.borderRadius;
+    return scanWindow != oldDelegate.scanWindow ||
+        borderRadius != oldDelegate.borderRadius;
   }
 }
