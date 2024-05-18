@@ -9,7 +9,6 @@ import "package:flutter/services.dart";
 import "package:device_info_plus/device_info_plus.dart";
 import "package:dynamic_color/dynamic_color.dart";
 import "package:flutter_displaymode/flutter_displaymode.dart";
-import "package:provider/provider.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
 // Project imports:
@@ -17,24 +16,24 @@ import "package:qr_code_gen/pages/qr_generator.dart";
 import "package:qr_code_gen/pages/qr_scanner.dart";
 import "package:qr_code_gen/settings.dart";
 import "package:qr_code_gen/utils/app_theme.dart";
-import "package:qr_code_gen/utils/theme_preference.dart";
 
 final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
 late final SharedPreferences prefs;
 // ignore: unreachable_from_main
 bool isLaunch = true;
+final GlobalKey appContainerKey = GlobalKey();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   prefs = await SharedPreferences.getInstance();
-  final bool isDark = prefs.getBool("isDark") ?? false;
 
-  runApp(Main(isDark: isDark));
+  runApp(Main(
+    key: appContainerKey,
+  ));
 }
 
 class Main extends StatefulWidget {
-  final bool isDark;
-  const Main({super.key, required this.isDark});
+  const Main({super.key});
 
   @override
   MainState createState() => MainState();
@@ -55,60 +54,57 @@ class MainState extends State<Main> {
       setSystemStyle(Theme.of(context));
     });
 
-    return ChangeNotifierProvider(
-      create: (context) => ThemePreference(widget.isDark),
-      builder: (context, snapshot) {
-        final themePreference = Provider.of<ThemePreference>(context);
-        return DynamicColorBuilder(
-          builder: (ColorScheme? light, ColorScheme? dark) {
-            return MaterialApp(
-              debugShowCheckedModeBanner: false,
-              theme: AppTheme.getTheme(Brightness.light, light, dark),
-              darkTheme: AppTheme.getTheme(Brightness.dark, light, dark),
-              themeMode: themePreference.currentTheme,
-              home: Scaffold(
-                appBar: AppBar(
-                  title: const Text(
-                    "MyQR",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  actions: const <Widget>[Settings()],
-                ),
-                body: pages[selectedPageIndex] as Widget,
-                bottomNavigationBar: Container(
-                  clipBehavior: Clip.hardEdge,
-                  decoration: const BoxDecoration(
-                    borderRadius: BorderRadius.only(
-                      topRight: Radius.circular(16),
-                      topLeft: Radius.circular(16),
-                    ),
-                  ),
-                  child: NavigationBar(
-                    selectedIndex: selectedPageIndex,
-                    onDestinationSelected: (int index) {
-                      setState(() {
-                        selectedPageIndex = index;
-                      });
-                    },
-                    destinations: const <NavigationDestination>[
-                      NavigationDestination(
-                        selectedIcon: Icon(Icons.qr_code_scanner),
-                        icon: Icon(Icons.qr_code_scanner_outlined),
-                        label: "QR Scanner",
-                      ),
-                      NavigationDestination(
-                        selectedIcon: Icon(Icons.qr_code_2),
-                        icon: Icon(Icons.qr_code_2_outlined),
-                        label: "QR Generator",
-                      ),
-                    ],
-                  ),
+    final ThemeMode brightness =
+        ThemeMode.values.byName(prefs.getString("theme") ?? "system");
+
+    return DynamicColorBuilder(
+      builder: (ColorScheme? light, ColorScheme? dark) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.getTheme(Brightness.light, light, dark),
+          darkTheme: AppTheme.getTheme(Brightness.dark, light, dark),
+          themeMode: brightness,
+          home: Scaffold(
+            appBar: AppBar(
+              title: const Text(
+                "MyQR",
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
                 ),
               ),
-            );
-          },
+              actions: const <Widget>[Settings()],
+            ),
+            body: pages[selectedPageIndex] as Widget,
+            bottomNavigationBar: Container(
+              clipBehavior: Clip.hardEdge,
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(16),
+                  topLeft: Radius.circular(16),
+                ),
+              ),
+              child: NavigationBar(
+                selectedIndex: selectedPageIndex,
+                onDestinationSelected: (int index) {
+                  setState(() {
+                    selectedPageIndex = index;
+                  });
+                },
+                destinations: const <NavigationDestination>[
+                  NavigationDestination(
+                    selectedIcon: Icon(Icons.qr_code_scanner),
+                    icon: Icon(Icons.qr_code_scanner_outlined),
+                    label: "QR Scanner",
+                  ),
+                  NavigationDestination(
+                    selectedIcon: Icon(Icons.qr_code_2),
+                    icon: Icon(Icons.qr_code_2_outlined),
+                    label: "QR Generator",
+                  ),
+                ],
+              ),
+            ),
+          ),
         );
       },
     );

@@ -1,14 +1,13 @@
 // Flutter imports:
+import "package:flex_color_scheme/flex_color_scheme.dart";
 import "package:flutter/material.dart";
 
 // Package imports:
 import "package:package_info_plus/package_info_plus.dart";
-import "package:provider/provider.dart";
 import "package:url_launcher/url_launcher.dart";
 
 // Project imports:
 import "package:qr_code_gen/main.dart";
-import "package:qr_code_gen/utils/theme_preference.dart";
 
 class Settings extends StatefulWidget {
   const Settings({
@@ -29,7 +28,7 @@ class SettingsState extends State<Settings> {
     installerStore: "Unknown",
   );
 
-  bool isDarkTheme = false;
+  ThemeMode theme = ThemeMode.system;
   bool openCamOnStart = false;
   bool autoOpenLinks = false;
 
@@ -37,8 +36,8 @@ class SettingsState extends State<Settings> {
   void initState() {
     super.initState();
     _initPackageInfo();
-    checkIfDarkTheme();
 
+    theme = ThemeMode.values.byName(prefs.getString("theme") ?? "system");
     openCamOnStart = prefs.getBool("openCamOnStart") ?? false;
     autoOpenLinks = prefs.getBool("autoOpenLinks") ?? false;
   }
@@ -58,11 +57,8 @@ class SettingsState extends State<Settings> {
     }
   }
 
-  Future<void> checkIfDarkTheme() async {
-    final bool isDark = prefs.getBool("isDark") ?? false;
-    setState(() {
-      isDarkTheme = isDark;
-    });
+  void _rebuildAppContainer() {
+    appContainerKey.currentState?.setState(() {});
   }
 
   final WidgetStateProperty<Icon?> themeIcon =
@@ -128,27 +124,67 @@ class SettingsState extends State<Settings> {
                             child: Column(
                               children: [
                                 Card(
-                                  child: ListTile(
-                                    leading: const Icon(Icons.dark_mode),
-                                    title: Text(
-                                        'Switch to ${isDarkTheme ? 'Light' : 'Dark'} mode'),
-                                    subtitle: Text(
-                                        'Current theme : ${isDarkTheme ? 'DARK' : 'LIGHT'}'),
-                                    trailing: Switch(
-                                      thumbIcon: themeIcon,
-                                      value: isDarkTheme,
-                                      onChanged: (bool value) {
-                                        final themePreference =
-                                            Provider.of<ThemePreference>(
-                                                context,
-                                                listen: false);
-                                        themePreference.toggleTheme();
+                                  child: Builder(
+                                    builder: (context) {
+                                      return ListTile(
+                                        leading: const Icon(Icons.dark_mode),
+                                        title: const Text("Theme"),
+                                        subtitle: Text(
+                                            "Current theme : ${theme.name.capitalize}"),
+                                        onTap: () {
+                                          final RenderBox listTileRenderBox =
+                                              context.findRenderObject()!
+                                                  as RenderBox;
+                                          final RenderBox overlayRenderBox =
+                                              Overlay.of(context)
+                                                      .context
+                                                      .findRenderObject()!
+                                                  as RenderBox;
+                                          final RelativeRect position =
+                                              RelativeRect.fromRect(
+                                            Rect.fromPoints(
+                                              listTileRenderBox.localToGlobal(
+                                                  listTileRenderBox.size
+                                                      .centerRight(Offset.zero),
+                                                  ancestor: overlayRenderBox),
+                                              listTileRenderBox.localToGlobal(
+                                                  listTileRenderBox.size
+                                                      .bottomRight(Offset.zero),
+                                                  ancestor: overlayRenderBox),
+                                            ),
+                                            Offset.zero & overlayRenderBox.size,
+                                          );
 
-                                        setState(() {
-                                          isDarkTheme = value;
-                                        });
-                                      },
-                                    ),
+                                          showMenu<ThemeMode>(
+                                            context: context,
+                                            position: position,
+                                            items: <PopupMenuEntry<ThemeMode>>[
+                                              const PopupMenuItem<ThemeMode>(
+                                                value: ThemeMode.system,
+                                                child: Text("System"),
+                                              ),
+                                              const PopupMenuItem<ThemeMode>(
+                                                value: ThemeMode.light,
+                                                child: Text("Light"),
+                                              ),
+                                              const PopupMenuItem<ThemeMode>(
+                                                value: ThemeMode.dark,
+                                                child: Text("Dark"),
+                                              ),
+                                            ],
+                                          ).then((ThemeMode? value) {
+                                            if (value != null) {
+                                              prefs.setString(
+                                                  "theme", value.name);
+                                              setState(() {
+                                                theme = value;
+                                              });
+                                              _rebuildAppContainer();
+                                            }
+                                          });
+                                        },
+                                      );
+                                    },
                                   ),
                                 ),
                                 Card(
