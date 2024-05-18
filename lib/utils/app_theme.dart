@@ -2,6 +2,7 @@
 import "package:flutter/material.dart";
 
 // Package imports:
+import "package:animations/animations.dart";
 import "package:flex_color_scheme/flex_color_scheme.dart";
 
 // Project imports:
@@ -105,6 +106,16 @@ class AppTheme {
         endIndent: 16,
         color: colorScheme.surfaceContainerHighest,
       ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: SharedAxisTransitionBuilder(),
+          TargetPlatform.windows: SharedAxisTransitionBuilder(),
+          TargetPlatform.linux: SharedAxisTransitionBuilder(),
+          TargetPlatform.fuchsia: SharedAxisTransitionBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
       iconTheme: theme.iconTheme.copyWith(
         color: colorScheme.secondary,
       ),
@@ -191,5 +202,25 @@ class AppTheme {
         ColorScheme.fromSeed(seedColor: seedColor, brightness: Brightness.dark);
 
     return scheme;
+  }
+}
+
+class SharedAxisTransitionBuilder extends PageTransitionsBuilder {
+  const SharedAxisTransitionBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T>? route,
+    BuildContext? context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget? child,
+  ) {
+    return SharedAxisTransition(
+      animation: animation,
+      secondaryAnimation: secondaryAnimation,
+      transitionType: SharedAxisTransitionType.horizontal,
+      child: child,
+    );
   }
 }
