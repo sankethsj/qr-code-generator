@@ -4,11 +4,14 @@ import "dart:typed_data";
 import "dart:ui" as ui;
 
 // Flutter imports:
+import "package:device_info_plus/device_info_plus.dart";
 import "package:flutter/material.dart";
 
 // Package imports:
 import "package:path_provider/path_provider.dart";
+import "package:permission_handler/permission_handler.dart";
 import "package:qr_flutter/qr_flutter.dart";
+import "package:saver_gallery/saver_gallery.dart";
 import "package:share_plus/share_plus.dart";
 
 class QrGenerator extends StatefulWidget {
@@ -54,8 +57,7 @@ class QrGeneratorState extends State<QrGenerator> {
 
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
-    final rect =
-        Rect.fromPoints(Offset.zero, const Offset(imageSize, imageSize));
+    final rect = Rect.fromPoints(Offset.zero, const Offset(imageSize, imageSize));
     final paint = Paint()
       ..isAntiAlias = true
       ..style = PaintingStyle.fill
@@ -64,12 +66,9 @@ class QrGeneratorState extends State<QrGenerator> {
 
     // Draw the image in the center.
     canvas.drawImage(qrImage, const Offset(margin, margin), Paint());
-    final image = await recorder
-        .endRecording()
-        .toImage(imageSize.toInt(), imageSize.toInt());
+    final image = await recorder.endRecording().toImage(imageSize.toInt(), imageSize.toInt());
 
-    final ByteData? picData =
-        await image.toByteData(format: ui.ImageByteFormat.png);
+    final ByteData? picData = await image.toByteData(format: ui.ImageByteFormat.png);
 
     // final qrValidationResult = QrValidator.validate(
     //   data: _controller.text,
@@ -114,12 +113,42 @@ class QrGeneratorState extends State<QrGenerator> {
     String message;
 
     try {
-      //final String qrFilePath = await createQrFile();
+      bool isGranted;
+      if (Platform.isAndroid) {
+        final deviceInfoPlugin = DeviceInfoPlugin();
+        final deviceInfo = await deviceInfoPlugin.androidInfo;
+        final sdkInt = deviceInfo.version.sdkInt;
 
-      //TODO await GallerySaver.saveImage(qrFilePath);
+        isGranted = !(sdkInt < 29) || await Permission.storage.request().isGranted;
+      } else {
+        isGranted = await Permission.photosAddOnly.request().isGranted;
+      }
+
+      if (!isGranted) {
+        throw Exception("Permission denied");
+      }
+
+      final String qrFilePath = await createQrFile();
+      final File qrFile = File(qrFilePath);
+      final Uint8List qrByteData = await qrFile.readAsBytes();
+
+      final String fileName = qrFilePath.split("/").last;
+      const String androidPath = "Pictures/MyQR/";
+      final String displayPath = androidPath + fileName;
+
+      final result = await SaverGallery.saveImage(
+        Uint8List.fromList(qrByteData),
+        name: fileName,
+        androidRelativePath: androidPath,
+        androidExistNotSave: false,
+      );
+
+      if (!result.isSuccess) {
+        throw Exception("Failed to save to Gallery");
+      }
 
       status = "Success";
-      message = "Successfully saved to Gallery";
+      message = 'Successfully saved to path:\n"$displayPath"';
     } catch (e) {
       status = "Failed";
       message = "Failed to save to Gallery. $e";
@@ -166,7 +195,6 @@ class QrGeneratorState extends State<QrGenerator> {
       margin: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 0),
       child: ListView(
         children: <Widget>[
-          const SizedBox(height: 30),
           const Center(
             child: Text(
               "QR Generator",
@@ -196,8 +224,7 @@ class QrGeneratorState extends State<QrGenerator> {
               decoration: InputDecoration(
                 border: const OutlineInputBorder(),
                 enabledBorder: OutlineInputBorder(
-                  borderSide:
-                      BorderSide(color: Theme.of(context).primaryColorDark),
+                  borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
                 ),
                 labelText: "Enter your text",
                 suffixIcon: _isTextFieldEmpty
@@ -272,7 +299,6 @@ class QrGeneratorState extends State<QrGenerator> {
                 ],
               ),
             ),
-            const SizedBox(height: 60),
           ],
         ],
       ),

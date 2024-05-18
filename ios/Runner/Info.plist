@@ -49,5 +49,9 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>NSPhotoLibraryAddUsageDescription</key>
+		<string>photo</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>photo</string>
 	</dict>
 </plist>
