@@ -1,34 +1,54 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:url_launcher/url_launcher.dart';
+// Flutter imports:
+import "package:flutter/material.dart";
+import "package:flutter/services.dart";
+
+// Package imports:
+import "package:mobile_scanner/mobile_scanner.dart";
+import "package:url_launcher/url_launcher.dart";
+
+// Project imports:
+import "package:qr_code_gen/main.dart";
 
 class ScanResult extends StatefulWidget {
   final BarcodeFormat resultFormat;
   final String resultText;
 
   const ScanResult({
-    Key? key,
+    super.key,
     required this.resultText,
     required this.resultFormat,
-  }) : super(key: key);
+  });
 
   @override
   ScanResultState createState() => ScanResultState();
 }
 
 class ScanResultState extends State<ScanResult> {
-  get resultFormat => widget.resultFormat.formatName;
-  get resultText => widget.resultText;
+  String get resultFormat => widget.resultFormat.name;
+  late Future<String?> resultTextFuture;
+  late String resultText = widget.resultText;
 
-  Future<void> _copyToClipboard(textData) async {
+  @override
+  void initState() {
+    super.initState();
+
+    handleResult();
+  }
+
+  Future<void> handleResult() async {
+    if (_textIsLink(resultText) && (prefs.getBool("autoOpenLinks") ?? false)) {
+      await _launchUrl(resultText);
+    }
+  }
+
+  Future<void> _copyToClipboard(String textData) async {
     await Clipboard.setData(ClipboardData(text: textData));
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
-        content: const Text('Copied to clipboard'),
+        content: const Text("Copied to clipboard"),
         behavior: SnackBarBehavior.floating,
         backgroundColor: Theme.of(context).primaryColor,
       ),
@@ -39,7 +59,7 @@ class ScanResultState extends State<ScanResult> {
     final Uri url0 = Uri.parse(url);
 
     if (!await launchUrl(url0, mode: LaunchMode.externalApplication)) {
-      throw Exception('Could not launch $url0');
+      throw Exception("Could not launch $url0");
     }
   }
 
@@ -51,14 +71,16 @@ class ScanResultState extends State<ScanResult> {
     }
   }
 
-  String _resultType(String text) {
+  Future<String> _resultType(String text) async {
     if (_textIsLink(text)) {
-      if (text.startsWith('upi://')) {
+      await resultTextFuture;
+
+      if (resultText.startsWith("upi://")) {
         return "UPI";
-      } else if (text.startsWith("https://maps.google.com") ||
-          text.startsWith("https://www.google.com/maps") ||
-          text.startsWith("https://goo.gl/maps") ||
-          text.startsWith("https://maps.app.goo.gl")) {
+      } else if (resultText.startsWith("https://maps.google.com") ||
+          resultText.startsWith("https://www.google.com/maps") ||
+          resultText.startsWith("https://goo.gl/maps") ||
+          resultText.startsWith("https://maps.app.goo.gl")) {
         return "GMAPS";
       } else {
         return "URL";
@@ -68,33 +90,36 @@ class ScanResultState extends State<ScanResult> {
     }
   }
 
-  Widget _myButton(BuildContext context) {
-    switch (_resultType(resultText)) {
+  Future<Widget> _myButton(BuildContext context) async {
+    switch (await _resultType(resultText)) {
       case "UPI":
-        return Row(
+        return const Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          mainAxisSize: MainAxisSize.min,
+          children: [
             Icon(Icons.currency_rupee_rounded),
-            SizedBox(width: 8),
-            Text('Pay with UPI app'),
+            Padding(padding: EdgeInsets.only(left: 8)),
+            Text("Pay with UPI app"),
           ],
         );
       case "GMAPS":
-        return Row(
+        return const Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          mainAxisSize: MainAxisSize.min,
+          children: [
             Icon(Icons.map_rounded),
-            SizedBox(width: 8),
-            Text('Navigate to location'),
+            Padding(padding: EdgeInsets.only(left: 8)),
+            Text("Navigate to location"),
           ],
         );
       default:
-        return Row(
+        return const Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          mainAxisSize: MainAxisSize.min,
+          children: [
             Icon(Icons.link_rounded),
-            SizedBox(width: 8),
-            Text('Open link in browser'),
+            Padding(padding: EdgeInsets.only(left: 8)),
+            Text("Open link in browser"),
           ],
         );
     }
@@ -105,95 +130,98 @@ class ScanResultState extends State<ScanResult> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Scan Results',
+          "Scan Results",
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
           ),
         ),
       ),
-      body: SizedBox(
-        width: double.infinity,
-        height: double.infinity,
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 60),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  const Text(
-                    'Code Type :',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Theme.of(context).primaryColor),
-                      borderRadius: const BorderRadius.all(Radius.circular(20)),
-                    ),
-                    child: Text(
-                      resultFormat,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 60),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  // color: Theme.of(context).highlightColor,
-                  border: Border.all(color: Theme.of(context).primaryColor),
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(20),
-                  ),
-                ),
-                child: SelectableText(
-                  resultText,
-                  style: const TextStyle(
-                    fontSize: 22,
+      body: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          children: [
+            const Padding(padding: EdgeInsets.only(top: 60)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                const Text(
+                  "Code Type :",
+                  style: TextStyle(
+                    fontSize: 24,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => _copyToClipboard(resultText),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Icon(Icons.copy_rounded),
-                      SizedBox(width: 8),
-                      Text('Copy'),
-                    ],
+                Container(
+                  padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Theme.of(context).primaryColor),
+                    borderRadius: const BorderRadius.all(Radius.circular(20)),
+                  ),
+                  child: Text(
+                    resultFormat,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
+              ],
+            ),
+            const Padding(padding: EdgeInsets.only(top: 60)),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                // color: Theme.of(context).highlightColor,
+                border: Border.all(color: Theme.of(context).primaryColor),
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(20),
+                ),
               ),
-              const SizedBox(height: 10),
-              if (_textIsLink(resultText)) ...[
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => _launchUrl(resultText),
-                    child: _myButton(context),
-                  ),
-                )
-              ]
-            ],
-          ),
+              child: SelectableText(
+                resultText,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const Padding(padding: EdgeInsets.only(top: 10)),
+            ElevatedButton(
+              onPressed: () => _copyToClipboard(resultText),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.copy_rounded),
+                  Padding(padding: EdgeInsets.only(left: 8)),
+                  Text("Copy"),
+                ],
+              ),
+            ),
+            const Padding(padding: EdgeInsets.only(top: 10)),
+            if (_textIsLink(resultText))
+              ElevatedButton(
+                onPressed: () => _launchUrl(resultText),
+                child: FutureBuilder(
+                  future: _myButton(context),
+                  builder: (context, value) {
+                    return value.data ?? const Text("Open link in browser");
+                  },
+                ),
+              ),
+            const Padding(padding: EdgeInsets.only(top: 10)),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.qr_code_scanner),
+                  Padding(padding: EdgeInsets.only(left: 8)),
+                  Text("Scan again"),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
