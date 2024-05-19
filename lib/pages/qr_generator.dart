@@ -244,6 +244,9 @@ class QrGeneratorState extends State<QrGenerator> {
               ),
               keyboardType: TextInputType.multiline,
               maxLines: null,
+              onTapOutside: (event) {
+                FocusManager.instance.primaryFocus?.unfocus();
+              },
             ),
           ),
           if (!_isTextFieldEmpty) ...[
