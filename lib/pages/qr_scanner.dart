@@ -28,9 +28,9 @@ class QrScannerState extends State<QrScanner> {
             builder: (context) => const CameraScanner(),
           ),
         );
-        isLaunch = false;
       });
     }
+    isLaunch = false;
   }
 
   @override
