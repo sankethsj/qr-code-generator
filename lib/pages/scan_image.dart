@@ -8,7 +8,7 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:scan/scan.dart';
 
 class ScanImage extends StatefulWidget {
-  const ScanImage({Key? key}) : super(key: key);
+  const ScanImage({super.key});
 
   @override
   ScanImageState createState() => ScanImageState();

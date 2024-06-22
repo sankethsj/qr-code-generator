@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 class QrGenerator extends StatefulWidget {
-  const QrGenerator({Key? key}) : super(key: key);
+  const QrGenerator({super.key});
 
   @override
   QrGeneratorState createState() => QrGeneratorState();

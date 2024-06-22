@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:qr_code_gen/utils/model.dart';
+import 'package:qr_code_gen/utils/db.dart';
 
 class ScanResult extends StatefulWidget {
   final BarcodeFormat resultFormat;
   final String resultText;
 
   const ScanResult({
-    Key? key,
+    super.key,
     required this.resultText,
     required this.resultFormat,
-  }) : super(key: key);
+  });
 
   @override
   ScanResultState createState() => ScanResultState();
@@ -20,6 +23,19 @@ class ScanResult extends StatefulWidget {
 class ScanResultState extends State<ScanResult> {
   get resultFormat => widget.resultFormat.formatName;
   get resultText => widget.resultText;
+
+  String getFormattedTimestamp() {
+    final now = DateTime.now();
+    final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    return formatter.format(now);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    ScanArchive scan = ScanArchive(timestamp: getFormattedTimestamp(), scanText: resultText);
+    DatabaseHelper.instance.insertScan(scan);
+  }
 
   List<String> findUrls(String text) {
     if (text.startsWith('upi://')) {

@@ -3,14 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_code_gen/pages/qr_generator.dart';
 import 'package:qr_code_gen/pages/qr_scanner.dart';
+import 'package:qr_code_gen/pages/scan_history.dart';
 import 'package:qr_code_gen/settings.dart';
 import 'package:qr_code_gen/utils/theme_preference.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:qr_code_gen/utils/db.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool isDark = prefs.getBool('isDark') ?? false;
+
+  DatabaseHelper.instance.database;
 
   runApp(Main(isDark: isDark));
 }
@@ -29,6 +33,7 @@ class MainState extends State<Main> {
   List pages = [
     const QrScanner(),
     const QrGenerator(),
+    const ScanHistory(),
   ];
 
   @override
@@ -91,6 +96,11 @@ class MainState extends State<Main> {
                       selectedIcon: Icon(Icons.qr_code_2),
                       icon: Icon(Icons.qr_code_2_outlined),
                       label: 'QR Generator',
+                    ),
+                    NavigationDestination(
+                      selectedIcon: Icon(Icons.history),
+                      icon: Icon(Icons.history_outlined),
+                      label: 'Scan History',
                     ),
                   ],
                   animationDuration: const Duration(seconds: 1),

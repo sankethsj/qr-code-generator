@@ -5,7 +5,7 @@ import 'package:qr_code_gen/pages/scan_result.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 class QrScanner extends StatefulWidget {
-  const QrScanner({Key? key}) : super(key: key);
+  const QrScanner({super.key});
 
   @override
   QrScannerState createState() => QrScannerState();
