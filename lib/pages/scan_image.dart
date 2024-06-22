@@ -20,14 +20,14 @@ class ScanImageState extends State<ScanImage> {
   @override
   void initState() {
     super.initState();
-    pickImage();
+    pickImage(context);
   }
 
-  Future pickImage() async {
+  Future pickImage(context) async {
     try {
       final image = await ImagePicker().pickImage(source: ImageSource.gallery);
       if (image == null) {
-        Navigator.pop(context);
+        Navigator.of(context).pop();
         return;
       }
       final imageTemp = File(image.path);
@@ -149,7 +149,7 @@ class ScanImageState extends State<ScanImage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: pickImage,
+                      onPressed: ()=> pickImage(context),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -164,7 +164,7 @@ class ScanImageState extends State<ScanImage> {
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
-                      onPressed: pickImage,
+                      onPressed: () => pickImage(context),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
