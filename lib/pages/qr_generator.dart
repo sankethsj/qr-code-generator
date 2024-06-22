@@ -46,8 +46,10 @@ class QrGeneratorState extends State<QrGenerator> {
       data: _controller.text,
       gapless: true,
       version: QrVersions.auto,
-      color: Colors.black,
-      emptyColor: Colors.white,
+      dataModuleStyle: const QrDataModuleStyle(
+        dataModuleShape: QrDataModuleShape.square,
+        color: Colors.black,
+      ),
     ).toImage(qrImageSize);
 
     final recorder = ui.PictureRecorder();
@@ -66,30 +68,6 @@ class QrGeneratorState extends State<QrGenerator> {
         .toImage(imageSize.toInt(), imageSize.toInt());
 
     ByteData? picData = await image.toByteData(format: ui.ImageByteFormat.png);
-
-    // final qrValidationResult = QrValidator.validate(
-    //   data: _controller.text,
-    //   version: QrVersions.auto,
-    //   errorCorrectionLevel: QrErrorCorrectLevel.L,
-    // );
-
-    // if (qrValidationResult.status != QrValidationStatus.valid) {
-    //   throw Exception(qrValidationResult.error);
-    // } else {
-    //   final qrCode = qrValidationResult.qrCode!;
-
-    //   final painter = QrPainter.withQr(
-    //       qr: qrCode,
-    //       color: Colors.black,
-    //       emptyColor: Colors.white,
-    //       gapless: true,
-    //       embeddedImageStyle: null,
-    //       embeddedImage: null);
-
-    //   final picData = await painter.toImageData(
-    //     2048,
-    //     format: ImageByteFormat.png,
-    //   );
 
     // get temporary directory path
     final tempDir = await getTemporaryDirectory();
@@ -216,8 +194,7 @@ class QrGeneratorState extends State<QrGenerator> {
                     ),
                     color: Colors.white,
                   ),
-                  child: QrImage(
-                    foregroundColor: Colors.black,
+                  child: QrImageView(
                     data: _controller.text,
                     size: 360,
                     padding: const EdgeInsets.all(16),
@@ -236,9 +213,9 @@ class QrGeneratorState extends State<QrGenerator> {
                       onPressed: () {
                         saveQrCode(context);
                       },
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Icon(Icons.save),
                           SizedBox(width: 8),
                           Text('Save to Gallery'),
@@ -252,9 +229,9 @@ class QrGeneratorState extends State<QrGenerator> {
                       onPressed: () {
                         shareQrCode();
                       },
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Icon(Icons.share),
                           SizedBox(width: 8),
                           Text('Share QR'),

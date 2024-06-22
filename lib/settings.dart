@@ -130,7 +130,7 @@ class SettingsState extends State<Settings> {
                                     listen: false);
                             themePreference.toggleTheme();
 
-                            setState(() => {isDarkTheme = !isDarkTheme});
+                            setState(() => isDarkTheme = !isDarkTheme);
                           },
                         ),
                       ),

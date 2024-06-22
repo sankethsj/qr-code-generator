@@ -1,6 +1,4 @@
 import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_code_gen/pages/scan_result.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
@@ -101,7 +99,7 @@ class CameraScannerState extends State<CameraScanner> {
                               future: controller?.getCameraInfo(),
                               builder: (context, snapshot) {
                                 if (snapshot.data != null) {
-                                  if (describeEnum(snapshot.data!) == "back") {
+                                  if (snapshot.data!.name == "back") {
                                     return const Text('Front Camera');
                                   } else {
                                     return const Text('Back Camera');

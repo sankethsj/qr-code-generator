@@ -27,8 +27,8 @@ class MainState extends State<Main> {
   int selectedPageIndex = 0;
 
   List pages = [
-    const QrGenerator(),
     const QrScanner(),
+    const QrGenerator(),
   ];
 
   @override
@@ -83,14 +83,14 @@ class MainState extends State<Main> {
                   },
                   destinations: const <NavigationDestination>[
                     NavigationDestination(
-                      selectedIcon: Icon(Icons.qr_code_2),
-                      icon: Icon(Icons.qr_code_2_outlined),
-                      label: 'QR Generator',
-                    ),
-                    NavigationDestination(
                       selectedIcon: Icon(Icons.qr_code_scanner),
                       icon: Icon(Icons.qr_code_scanner_outlined),
                       label: 'QR Scanner',
+                    ),
+                    NavigationDestination(
+                      selectedIcon: Icon(Icons.qr_code_2),
+                      icon: Icon(Icons.qr_code_2_outlined),
+                      label: 'QR Generator',
                     ),
                   ],
                   animationDuration: const Duration(seconds: 1),
