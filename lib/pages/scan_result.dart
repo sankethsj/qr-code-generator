@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:qr_code_gen/utils/model.dart';
+import 'package:qr_code_gen/utils/db.dart';
 
 class ScanResult extends StatefulWidget {
   final BarcodeFormat resultFormat;
   final String resultText;
 
   const ScanResult({
-    Key? key,
+    super.key,
     required this.resultText,
     required this.resultFormat,
-  }) : super(key: key);
+  });
 
   @override
   ScanResultState createState() => ScanResultState();
@@ -20,6 +23,36 @@ class ScanResult extends StatefulWidget {
 class ScanResultState extends State<ScanResult> {
   get resultFormat => widget.resultFormat.formatName;
   get resultText => widget.resultText;
+
+  String getFormattedTimestamp() {
+    final now = DateTime.now();
+    final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    return formatter.format(now);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    ScanArchive scan = ScanArchive(timestamp: getFormattedTimestamp(), scanText: resultText);
+    DatabaseHelper.instance.insertScan(scan);
+  }
+
+  List<String> findUrls(String text) {
+    if (text.startsWith('upi://')) {
+      return [text.split(' ')[0]];
+    }
+    // Regular expression to match URLs
+    final urlRegExp = RegExp(
+      r'(?:(?:https?|ftp|upi):\/\/)?[\w/\-?=%.]+\.[\w/\-?=%.]+',
+      caseSensitive: false,
+    );
+
+    // Find all matches in the text
+    final matches = urlRegExp.allMatches(text);
+
+    // Extract the matched URLs into a list
+    return matches.map((match) => match.group(0) ?? '').toList();
+  }
 
   Future<void> _copyToClipboard(textData) async {
     await Clipboard.setData(ClipboardData(text: textData));
@@ -43,22 +76,17 @@ class ScanResultState extends State<ScanResult> {
     }
   }
 
-  bool _textIsLink(String text) {
-    try {
-      return Uri.parse(text).isAbsolute;
-    } catch (e) {
-      return false;
-    }
-  }
-
   String _resultType(String text) {
-    if (_textIsLink(text)) {
-      if (text.startsWith('upi://')) {
+    List links = findUrls(text);
+
+    if (links.isNotEmpty) {
+      String firstLink = links[0];
+      if (firstLink.startsWith('upi://')) {
         return "UPI";
-      } else if (text.startsWith("https://maps.google.com") ||
-          text.startsWith("https://www.google.com/maps") ||
-          text.startsWith("https://goo.gl/maps") ||
-          text.startsWith("https://maps.app.goo.gl")) {
+      } else if (firstLink.startsWith("https://maps.google.com") ||
+          firstLink.startsWith("https://www.google.com/maps") ||
+          firstLink.startsWith("https://goo.gl/maps") ||
+          firstLink.startsWith("https://maps.app.goo.gl")) {
         return "GMAPS";
       } else {
         return "URL";
@@ -71,27 +99,27 @@ class ScanResultState extends State<ScanResult> {
   Widget _myButton(BuildContext context) {
     switch (_resultType(resultText)) {
       case "UPI":
-        return Row(
+        return const Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Icon(Icons.currency_rupee_rounded),
             SizedBox(width: 8),
             Text('Pay with UPI app'),
           ],
         );
       case "GMAPS":
-        return Row(
+        return const Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Icon(Icons.map_rounded),
             SizedBox(width: 8),
             Text('Navigate to location'),
           ],
         );
       default:
-        return Row(
+        return const Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Icon(Icons.link_rounded),
             SizedBox(width: 8),
             Text('Open link in browser'),
@@ -102,6 +130,14 @@ class ScanResultState extends State<ScanResult> {
 
   @override
   Widget build(BuildContext context) {
+    String url = "";
+    List links = findUrls(resultText);
+
+    bool resultContainsLink = links.isNotEmpty;
+    if (resultContainsLink) {
+      url = links[0];
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -126,9 +162,9 @@ class ScanResultState extends State<ScanResult> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   const Text(
-                    'Code Type :',
+                    'Scan Type :',
                     style: TextStyle(
-                      fontSize: 24,
+                      fontSize: 18,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -136,19 +172,19 @@ class ScanResultState extends State<ScanResult> {
                     padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
                     decoration: BoxDecoration(
                       border: Border.all(color: Theme.of(context).primaryColor),
-                      borderRadius: const BorderRadius.all(Radius.circular(20)),
+                      borderRadius: const BorderRadius.all(Radius.circular(10)),
                     ),
                     child: Text(
                       resultFormat,
                       style: const TextStyle(
-                        fontSize: 24,
+                        fontSize: 18,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 60),
+              const SizedBox(height: 30),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
@@ -156,7 +192,7 @@ class ScanResultState extends State<ScanResult> {
                   // color: Theme.of(context).highlightColor,
                   border: Border.all(color: Theme.of(context).primaryColor),
                   borderRadius: const BorderRadius.all(
-                    Radius.circular(20),
+                    Radius.circular(10),
                   ),
                 ),
                 child: SelectableText(
@@ -172,9 +208,9 @@ class ScanResultState extends State<ScanResult> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () => _copyToClipboard(resultText),
-                  child: Row(
+                  child: const Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
+                    children: [
                       Icon(Icons.copy_rounded),
                       SizedBox(width: 8),
                       Text('Copy'),
@@ -183,11 +219,11 @@ class ScanResultState extends State<ScanResult> {
                 ),
               ),
               const SizedBox(height: 10),
-              if (_textIsLink(resultText)) ...[
+              if (resultContainsLink) ...[
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => _launchUrl(resultText),
+                    onPressed: () => _launchUrl(url),
                     child: _myButton(context),
                   ),
                 )

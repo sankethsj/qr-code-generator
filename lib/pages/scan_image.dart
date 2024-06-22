@@ -8,7 +8,7 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:scan/scan.dart';
 
 class ScanImage extends StatefulWidget {
-  const ScanImage({Key? key}) : super(key: key);
+  const ScanImage({super.key});
 
   @override
   ScanImageState createState() => ScanImageState();
@@ -20,24 +20,29 @@ class ScanImageState extends State<ScanImage> {
   @override
   void initState() {
     super.initState();
-    pickImage();
+    pickImage(context);
   }
 
-  Future pickImage() async {
+  Future pickImage(context) async {
     try {
       final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (image == null) return;
+      if (image == null) {
+        Navigator.of(context).pop();
+        return;
+      }
       final imageTemp = File(image.path);
       setState(() => this.image = imageTemp);
     } on PlatformException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
-          content: Text('Failed to pick image: $e'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Theme.of(context).primaryColor,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
+            content: Text('Failed to pick image: $e'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Theme.of(context).primaryColor,
+          ),
+        );
+      }
     }
   }
 
@@ -131,9 +136,9 @@ class ScanImageState extends State<ScanImage> {
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: () => handleOnScan(context),
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Icon(Icons.image_search_rounded),
                           SizedBox(width: 8),
                           Text('Scan this Image'),
@@ -144,10 +149,10 @@ class ScanImageState extends State<ScanImage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: pickImage,
-                      child: Row(
+                      onPressed: ()=> pickImage(context),
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Icon(Icons.photo_library_outlined),
                           SizedBox(width: 8),
                           Text('Choose another Image'),
@@ -159,10 +164,10 @@ class ScanImageState extends State<ScanImage> {
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
-                      onPressed: pickImage,
-                      child: Row(
+                      onPressed: () => pickImage(context),
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Icon(Icons.photo_library_outlined),
                           SizedBox(width: 8),
                           Text('Select an Image'),

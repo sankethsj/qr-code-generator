@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Settings extends StatefulWidget {
-  const Settings({Key? key}) : super(key: key);
+  const Settings({super.key});
 
   @override
   SettingsState createState() => SettingsState();
@@ -23,12 +23,13 @@ class SettingsState extends State<Settings> {
   );
 
   bool isDarkTheme = false;
+  bool isScanHistoryOn = false;
 
   @override
   void initState() {
     super.initState();
     _initPackageInfo();
-    checkIfDarkTheme();
+    loadPreferences();
   }
 
   Future<void> _initPackageInfo() async {
@@ -46,11 +47,13 @@ class SettingsState extends State<Settings> {
     }
   }
 
-  checkIfDarkTheme() async {
+  loadPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool isDark = prefs.getBool('isDark') ?? false;
+    bool scanHistory = prefs.getBool('scanHistory') ?? false;
     setState(() {
       isDarkTheme = isDark;
+      isScanHistoryOn = scanHistory;
     });
   }
 
@@ -61,6 +64,16 @@ class SettingsState extends State<Settings> {
         return const Icon(Icons.dark_mode);
       }
       return const Icon(Icons.light_mode);
+    },
+  );
+
+  final MaterialStateProperty<Icon?> scanHistoryIcon =
+      MaterialStateProperty.resolveWith<Icon?>(
+    (Set<MaterialState> states) {
+      if (states.contains(MaterialState.selected)) {
+        return const Icon(Icons.history);
+      }
+      return const Icon(Icons.history_toggle_off);
     },
   );
 
@@ -79,7 +92,7 @@ class SettingsState extends State<Settings> {
             return StatefulBuilder(
                 builder: (BuildContext context, StateSetter setState) {
               return SizedBox(
-                height: 400,
+                height: 480,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,7 +143,35 @@ class SettingsState extends State<Settings> {
                                     listen: false);
                             themePreference.toggleTheme();
 
-                            setState(() => {isDarkTheme = !isDarkTheme});
+                            setState(() => isDarkTheme = !isDarkTheme);
+                          },
+                        ),
+                      ),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.fromLTRB(20, 5, 20, 5),
+                      decoration: BoxDecoration(
+                          color: Theme.of(context).canvasColor,
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(20),
+                          )),
+                      child: ListTile(
+                        splashColor: Theme.of(context).splashColor,
+                        leading: const Icon(Icons.history),
+                        title: const Text('Scan History'),
+                        subtitle: Text(
+                          'Turn ${isScanHistoryOn ? 'OFF' : 'ON'} Scan history',
+                          style: const TextStyle(fontWeight: FontWeight.w100),
+                        ),
+                        trailing: Switch(
+                          thumbIcon: scanHistoryIcon,
+                          value: isScanHistoryOn,
+                          onChanged: (bool value) async {
+                            SharedPreferences prefs = await SharedPreferences.getInstance();
+                            prefs.setBool('scanHistory', !isScanHistoryOn);
+                            setState(() {
+                              isScanHistoryOn = !isScanHistoryOn;
+                            });
                           },
                         ),
                       ),

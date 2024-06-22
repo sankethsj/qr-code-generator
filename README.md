@@ -7,8 +7,8 @@ A Material You themed flutter app to Create, Save, Scan QR codes. MyQR.
  <a href="https://github.com/sankethsj/qr-code-generator" style="text-decoration:none" area-label="flutter">
     <img src="https://img.shields.io/badge/Platform-Flutter-blue">
   </a>
-  <a href="https://github.com/sankethsj/qr-code-generator/releases/tag/v1.1.1" style="text-decoration:none" area-label="flutter">
-    <img src="https://img.shields.io/badge/Version-1.1.1-green">
+  <a href="https://github.com/sankethsj/qr-code-generator/releases/tag/v1.3" style="text-decoration:none" area-label="flutter">
+    <img src="https://img.shields.io/badge/Version-1.3-green">
   </a>
 
 ## **Download Now**
