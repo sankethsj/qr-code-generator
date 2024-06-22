@@ -117,8 +117,6 @@ class ScanResultState extends State<ScanResult> {
     String url = "";
     List links = findUrls(resultText);
 
-    print("links found in text are");
-    print(links);
     bool resultContainsLink = links.isNotEmpty;
     if (resultContainsLink) {
       url = links[0];
