@@ -33,11 +33,8 @@ class ScanResultState extends State<ScanResult> {
   }
 
   void handleResult() {
-    if (widget.barcode.type == BarcodeType.url &&
-        widget.barcode.url != null &&
-        (prefs.getBool("autoOpenLinks") ?? false)) {
-      launchUrl(Uri.parse(widget.barcode.url!.url),
-          mode: LaunchMode.externalApplication);
+    if (widget.barcode.type == BarcodeType.url && widget.barcode.url != null && (prefs.getBool("autoOpenLinks") ?? false)) {
+      launchUrl(Uri.parse(widget.barcode.url!.url), mode: LaunchMode.externalApplication);
     }
   }
 
@@ -59,8 +56,7 @@ class ScanResultState extends State<ScanResult> {
     switch (widget.barcode.type) {
       case BarcodeType.url:
         return ElevatedButton.icon(
-          onPressed: () => launchUrl(Uri.parse(widget.barcode.url!.url),
-              mode: LaunchMode.externalApplication),
+          onPressed: () => launchUrl(Uri.parse(widget.barcode.url!.url), mode: LaunchMode.externalApplication),
           icon: const Icon(Icons.link_rounded),
           label: const Text("Open link in browser"),
         );
@@ -230,14 +226,6 @@ class ScanResultState extends State<ScanResult> {
 
   @override
   Widget build(BuildContext context) {
-    String url = "";
-    List links = findUrls(resultText);
-
-    bool resultContainsLink = links.isNotEmpty;
-    if (resultContainsLink) {
-      url = links[0];
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -270,10 +258,8 @@ class ScanResultState extends State<ScanResult> {
                       Container(
                         padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
                         decoration: BoxDecoration(
-                          border:
-                              Border.all(color: Theme.of(context).primaryColor),
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(20)),
+                          border: Border.all(color: Theme.of(context).primaryColor),
+                          borderRadius: const BorderRadius.all(Radius.circular(20)),
                         ),
                         child: Text(
                           widget.barcode.format.name.capitalize,
@@ -301,10 +287,8 @@ class ScanResultState extends State<ScanResult> {
                       Container(
                         padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
                         decoration: BoxDecoration(
-                          border:
-                              Border.all(color: Theme.of(context).primaryColor),
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(20)),
+                          border: Border.all(color: Theme.of(context).primaryColor),
+                          borderRadius: const BorderRadius.all(Radius.circular(20)),
                         ),
                         child: Text(
                           widget.barcode.type.name.capitalize,
@@ -329,9 +313,7 @@ class ScanResultState extends State<ScanResult> {
                       ),
                     ),
                     child: SelectableText(
-                      widget.barcode.displayValue ??
-                          widget.barcode.rawValue ??
-                          "No data found",
+                      widget.barcode.displayValue ?? widget.barcode.rawValue ?? "No data found",
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w500,
@@ -342,9 +324,7 @@ class ScanResultState extends State<ScanResult> {
                 const Padding(padding: EdgeInsets.only(top: 10)),
                 ElevatedButton(
                   onPressed: () => _copyToClipboard(
-                    widget.barcode.displayValue ??
-                        widget.barcode.rawValue ??
-                        "",
+                    widget.barcode.displayValue ?? widget.barcode.rawValue ?? "",
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
