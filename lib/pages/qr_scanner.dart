@@ -102,11 +102,13 @@ class QrScannerState extends State<QrScanner>
 
   @override
   void didPopNext() {
+    controller.start();
     _subscription = controller.barcodes.listen(_handleBarcode);
   }
 
   @override
   void didPushNext() {
+    controller.stop();
     unawaited(_subscription?.cancel());
     _subscription = null;
   }
@@ -183,7 +185,9 @@ class QrScannerState extends State<QrScanner>
     final ScanArchive scan =
         ScanArchive(timestamp: getFormattedTimestamp(), barcode: result);
     DatabaseHelper.instance.insertScan(scan).then(
-        (_) => (scanHistoryKey.currentState as ScanHistoryState?)?.loadScans());
+          (_) =>
+              (scanHistoryKey.currentState as ScanHistoryState?)?.loadScans(),
+        );
 
     if (controller.value.torchState == TorchState.on) {
       controller.toggleTorch();
