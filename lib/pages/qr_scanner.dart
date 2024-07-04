@@ -185,6 +185,10 @@ class QrScannerState extends State<QrScanner>
     DatabaseHelper.instance.insertScan(scan).then(
         (_) => (scanHistoryKey.currentState as ScanHistoryState?)?.loadScans());
 
+    if (controller.value.torchState == TorchState.on) {
+      controller.toggleTorch();
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
