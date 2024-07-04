@@ -3,6 +3,7 @@ import "dart:async";
 
 // Package imports:
 import "package:path/path.dart";
+import "package:qr_code_gen/main.dart";
 import "package:sqflite/sqflite.dart";
 
 // Project imports:
@@ -59,6 +60,8 @@ class DatabaseHelper {
 
   // Helper methods
   Future<int> insertScan(ScanArchive scan) async {
+    if (!(prefs.getBool("scanHistory") ?? true)) return 0;
+
     final Database db = await instance.database;
     return await db.insert("scan_archive", scan.toMap());
   }
@@ -87,5 +90,10 @@ class DatabaseHelper {
       where: "id = ?",
       whereArgs: [id],
     );
+  }
+
+  Future<int> deleteAllScans() async {
+    final Database db = await instance.database;
+    return await db.delete("scan_archive");
   }
 }

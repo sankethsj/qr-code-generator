@@ -4,6 +4,7 @@ import "package:flutter/material.dart";
 // Package imports:
 import "package:flex_color_scheme/flex_color_scheme.dart";
 import "package:package_info_plus/package_info_plus.dart";
+import "package:qr_code_gen/utils/db.dart";
 import "package:url_launcher/url_launcher.dart";
 
 // Project imports:
@@ -30,14 +31,12 @@ class SettingsState extends State<Settings> {
 
   ThemeMode theme = ThemeMode.system;
   bool autoOpenLinks = false;
-  bool scanHistory = false;
+  bool scanHistory = true;
 
   @override
   void initState() {
     super.initState();
     _initPackageInfo();
-
-    loadPreferences();
   }
 
   Future<void> _initPackageInfo() async {
@@ -63,7 +62,7 @@ class SettingsState extends State<Settings> {
     setState(() {
       theme = ThemeMode.values.byName(prefs.getString("theme") ?? "system");
       autoOpenLinks = prefs.getBool("autoOpenLinks") ?? false;
-      scanHistory = prefs.getBool("scanHistory") ?? false;
+      scanHistory = prefs.getBool("scanHistory") ?? true;
     });
   }
 
@@ -87,6 +86,10 @@ class SettingsState extends State<Settings> {
     },
   );
 
+  void _deleteAllScans() {
+    DatabaseHelper.instance.deleteAllScans();
+  }
+
   @override
   Widget build(BuildContext context) {
     return IconButton(
@@ -95,6 +98,8 @@ class SettingsState extends State<Settings> {
         size: 26.0,
       ),
       onPressed: () {
+        loadPreferences();
+
         showModalBottomSheet<void>(
           isScrollControlled: true,
           showDragHandle: true,
@@ -249,6 +254,13 @@ class SettingsState extends State<Settings> {
                                         setState(() {
                                           scanHistory = value;
                                         });
+
+                                        if (!value) {
+                                          _deleteAllScans();
+                                        }
+
+                                        scanHistoryKey.currentState
+                                            ?.setState(() {});
                                       },
                                     ),
                                   ),

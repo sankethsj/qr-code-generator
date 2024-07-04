@@ -8,6 +8,8 @@ import "package:flutter/services.dart";
 // Package imports:
 import "package:image_picker/image_picker.dart";
 import "package:mobile_scanner/mobile_scanner.dart";
+import "package:qr_code_gen/main.dart";
+import "package:qr_code_gen/pages/scan_history.dart";
 
 // Project imports:
 import "package:qr_code_gen/pages/scan_result.dart";
@@ -106,7 +108,8 @@ class ScanImageState extends State<ScanImage> {
 
     final ScanArchive scan =
         ScanArchive(timestamp: getFormattedTimestamp(), barcode: result);
-    DatabaseHelper.instance.insertScan(scan);
+    DatabaseHelper.instance.insertScan(scan).then(
+        (_) => (scanHistoryKey.currentState as ScanHistoryState?)?.loadScans());
 
     if (!context.mounted) return;
     Navigator.push(

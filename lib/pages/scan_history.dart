@@ -1,5 +1,6 @@
 // Flutter imports:
 import "package:flutter/material.dart";
+import "package:qr_code_gen/main.dart";
 
 // Project imports:
 import "package:qr_code_gen/pages/scan_result.dart";
@@ -10,20 +11,24 @@ class ScanHistory extends StatefulWidget {
   const ScanHistory({super.key});
 
   @override
-  State<ScanHistory> createState() => _ScanHistoryState();
+  State<ScanHistory> createState() => ScanHistoryState();
 }
 
-class _ScanHistoryState extends State<ScanHistory> {
+class ScanHistoryState extends State<ScanHistory>
+    with AutomaticKeepAliveClientMixin<ScanHistory> {
+  @override
+  bool get wantKeepAlive => true;
+
   late Future<List<ScanArchive>> scanHistory;
   bool isScanHistoryOn = false;
 
   @override
   void initState() {
     super.initState();
-    _loadScans();
+    loadScans();
   }
 
-  Future<void> _loadScans() async {
+  Future<void> loadScans() async {
     final scans = DatabaseHelper.instance.getAllScans();
     setState(() {
       scanHistory = scans;
@@ -32,41 +37,57 @@ class _ScanHistoryState extends State<ScanHistory> {
 
   Future<void> _deleteScan(int id) async {
     await DatabaseHelper.instance.deleteScan(id);
-    _loadScans(); // Refresh the list after deletion
+    loadScans(); // Refresh the list after deletion
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Scan History"),
-      ),
-      body: FutureBuilder<List<ScanArchive>>(
-        future: scanHistory,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text("Error: ${snapshot.error}"));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("No scans found."));
-          } else {
-            return ListView.builder(
-              itemCount: snapshot.data!.length,
-              itemBuilder: (context, index) {
-                final scan = snapshot.data![index];
-                return ScanArchiveListItem(
-                  scan: scan,
-                  onDelete: (id) {
-                    _deleteScan(id);
+    super.build(context);
+
+    return (prefs.getBool("scanHistory") ?? true)
+        ? FutureBuilder<List<ScanArchive>>(
+            future: scanHistory,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text("Error: ${snapshot.error}"));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text("No scans found."));
+              } else {
+                return ListView.builder(
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    final scan = snapshot.data![index];
+                    return ScanArchiveListItem(
+                      scan: scan,
+                      onDelete: (id) {
+                        _deleteScan(id);
+                      },
+                    );
                   },
                 );
-              },
-            );
-          }
-        },
-      ),
-    );
+              }
+            },
+          )
+        : Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text("Scan history is turned off"),
+                const Padding(padding: EdgeInsets.all(8)),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      prefs.setBool("scanHistory", true);
+                      loadScans();
+                    });
+                  },
+                  child: const Text("Turn on"),
+                ),
+              ],
+            ),
+          );
   }
 }
 

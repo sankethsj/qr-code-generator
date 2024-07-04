@@ -21,8 +21,8 @@ import "package:qr_code_gen/utils/db.dart";
 
 final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
 late final SharedPreferences prefs;
-// ignore: unreachable_from_main
 final GlobalKey appContainerKey = GlobalKey();
+final GlobalKey<State<ScanHistory>> scanHistoryKey = GlobalKey();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,7 +50,12 @@ class MainState extends State<Main> {
   List<Widget> pages = [
     const QrScanner(),
     const QrGenerator(),
-    const ScanHistory(),
+    ScanHistory(key: scanHistoryKey),
+  ];
+  List<String> pageNames = [
+    "QR Scanner",
+    "QR Generator",
+    "Scan History",
   ];
 
   late final PageController _pageController =
@@ -58,9 +63,8 @@ class MainState extends State<Main> {
 
   @override
   void dispose() {
-    _pageController.dispose();
-
     super.dispose();
+    _pageController.dispose();
   }
 
   @override
@@ -83,9 +87,9 @@ class MainState extends State<Main> {
           navigatorObservers: [routeObserver],
           home: Scaffold(
             appBar: AppBar(
-              title: const Text(
-                "MyQR",
-                style: TextStyle(
+              title: Text(
+                pageNames[selectedPageIndex],
+                style: const TextStyle(
                   fontWeight: FontWeight.w900,
                 ),
               ),

@@ -183,12 +183,6 @@ class QrGeneratorState extends State<QrGenerator>
       margin: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 0),
       child: ListView(
         children: <Widget>[
-          const Center(
-            child: Text(
-              "QR Generator",
-              style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
-            ),
-          ),
           const SizedBox(height: 14),
           const Center(
             child: Text(

@@ -6,9 +6,11 @@ import "package:flutter/material.dart";
 
 // Package imports:
 import "package:mobile_scanner/mobile_scanner.dart";
+import "package:qr_code_gen/main.dart";
 
 // Project imports:
 import "package:qr_code_gen/pages/mobile_scanner_overlay.dart";
+import "package:qr_code_gen/pages/scan_history.dart";
 import "package:qr_code_gen/pages/scan_image.dart";
 import "package:qr_code_gen/pages/scan_result.dart";
 import "package:qr_code_gen/pages/scanner_error_widget.dart";
@@ -31,8 +33,6 @@ class QrScannerState extends State<QrScanner>
   final MobileScannerController controller = MobileScannerController(
     useNewCameraSelector: true,
   );
-
-  bool torchEnabled = false;
 
   StreamSubscription<Object?>? _subscription;
 
@@ -129,13 +129,15 @@ class QrScannerState extends State<QrScanner>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     ElevatedButton(
-                      onPressed: () {
-                        torchEnabled = !torchEnabled;
-                        controller.toggleTorch();
+                      onPressed: () async {
+                        if (controller.value.cameraDirection ==
+                            CameraFacing.front) return;
+
+                        await controller.toggleTorch();
                         setState(() {});
                       },
                       child: Icon(
-                        torchEnabled
+                        controller.value.torchState == TorchState.on
                             ? Icons.flashlight_on_rounded
                             : Icons.flashlight_off_rounded,
                       ),
@@ -180,7 +182,8 @@ class QrScannerState extends State<QrScanner>
 
     final ScanArchive scan =
         ScanArchive(timestamp: getFormattedTimestamp(), barcode: result);
-    DatabaseHelper.instance.insertScan(scan);
+    DatabaseHelper.instance.insertScan(scan).then(
+        (_) => (scanHistoryKey.currentState as ScanHistoryState?)?.loadScans());
 
     Navigator.push(
       context,
