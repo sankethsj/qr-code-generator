@@ -64,13 +64,23 @@ android {
            storePassword keystoreProperties['storePassword']
        }
    }
+   
    buildTypes {
-       release {
-           signingConfig signingConfigs.release
-       }
-       debug {
-           signingConfig signingConfigs.debug
-       }
+		debug {
+			signingConfig signingConfigs.debug
+			applicationIdSuffix '.debug'
+			versionNameSuffix '-DEBUG'
+		}
+
+		profile {
+			signingConfig signingConfigs.debug
+			applicationIdSuffix '.profile'
+			versionNameSuffix '-PROFILE'
+		}
+
+		release {
+			signingConfig signingConfigs.release
+		}
    }
 }
 
