@@ -139,7 +139,7 @@ class ScanResultState extends State<ScanResult> {
             }
           },
           icon: const Icon(Icons.phone_rounded),
-          label: const Text("Call"),
+          label: const Text("Call number"),
         );
       case BarcodeType.sms:
         return ElevatedButton.icon(

@@ -6,9 +6,9 @@ import "package:flutter/material.dart";
 
 // Package imports:
 import "package:mobile_scanner/mobile_scanner.dart";
-import "package:qr_code_gen/main.dart";
 
 // Project imports:
+import "package:qr_code_gen/main.dart";
 import "package:qr_code_gen/pages/mobile_scanner_overlay.dart";
 import "package:qr_code_gen/pages/scan_history.dart";
 import "package:qr_code_gen/pages/scan_image.dart";
@@ -128,7 +128,7 @@ class QrScannerState extends State<QrScanner>
               children: <Widget>[
                 const Text("Point your Camera towards a QR code"),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
                     ElevatedButton(
                       onPressed: () async {

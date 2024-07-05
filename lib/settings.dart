@@ -4,11 +4,12 @@ import "package:flutter/material.dart";
 // Package imports:
 import "package:flex_color_scheme/flex_color_scheme.dart";
 import "package:package_info_plus/package_info_plus.dart";
-import "package:qr_code_gen/utils/db.dart";
 import "package:url_launcher/url_launcher.dart";
 
 // Project imports:
 import "package:qr_code_gen/main.dart";
+import "package:qr_code_gen/pages/scan_history.dart";
+import "package:qr_code_gen/utils/db.dart";
 
 class Settings extends StatefulWidget {
   const Settings({
@@ -259,8 +260,9 @@ class SettingsState extends State<Settings> {
                                           _deleteAllScans();
                                         }
 
-                                        scanHistoryKey.currentState
-                                            ?.setState(() {});
+                                        (scanHistoryKey.currentState
+                                                as ScanHistoryState?)
+                                            ?.loadScans();
                                       },
                                     ),
                                   ),

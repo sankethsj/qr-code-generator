@@ -1,8 +1,8 @@
 // Flutter imports:
 import "package:flutter/material.dart";
-import "package:qr_code_gen/main.dart";
 
 // Project imports:
+import "package:qr_code_gen/main.dart";
 import "package:qr_code_gen/pages/scan_result.dart";
 import "package:qr_code_gen/utils/db.dart";
 import "package:qr_code_gen/utils/model.dart";

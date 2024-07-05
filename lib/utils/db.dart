@@ -3,10 +3,10 @@ import "dart:async";
 
 // Package imports:
 import "package:path/path.dart";
-import "package:qr_code_gen/main.dart";
 import "package:sqflite/sqflite.dart";
 
 // Project imports:
+import "package:qr_code_gen/main.dart";
 import "package:qr_code_gen/utils/barcode_decoder.dart";
 import "package:qr_code_gen/utils/model.dart";
 
