@@ -67,20 +67,20 @@ class SettingsState extends State<Settings> {
     });
   }
 
-  final WidgetStateProperty<Icon?> themeIcon =
-      WidgetStateProperty.resolveWith<Icon?>(
-    (Set<WidgetState> states) {
-      if (states.contains(WidgetState.selected)) {
+  final MaterialStateProperty<Icon?> themeIcon =
+      MaterialStateProperty.resolveWith<Icon?>(
+    (Set<MaterialState> states) {
+      if (states.contains(MaterialState.selected)) {
         return const Icon(Icons.dark_mode);
       }
       return const Icon(Icons.light_mode);
     },
   );
 
-  final WidgetStateProperty<Icon?> scanHistoryIcon =
-      WidgetStateProperty.resolveWith<Icon?>(
-    (Set<WidgetState> states) {
-      if (states.contains(WidgetState.selected)) {
+  final MaterialStateProperty<Icon?> scanHistoryIcon =
+      MaterialStateProperty.resolveWith<Icon?>(
+    (Set<MaterialState> states) {
+      if (states.contains(MaterialState.selected)) {
         return const Icon(Icons.history);
       }
       return const Icon(Icons.history_toggle_off);
