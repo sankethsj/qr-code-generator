@@ -1,14 +1,29 @@
-import 'dart:io';
+// Dart imports:
+import "dart:io";
 
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:qr_code_gen/pages/scan_result.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:scan/scan.dart';
+// Flutter imports:
+import "package:flutter/material.dart";
+import "package:flutter/services.dart";
+
+// Package imports:
+import "package:image_picker/image_picker.dart";
+import "package:mobile_scanner/mobile_scanner.dart";
+
+// Project imports:
+import "package:qr_code_gen/main.dart";
+import "package:qr_code_gen/pages/scan_history.dart";
+import "package:qr_code_gen/pages/scan_result.dart";
+import "package:qr_code_gen/utils/db.dart";
+import "package:qr_code_gen/utils/model.dart";
+import "package:qr_code_gen/utils/utils.dart";
 
 class ScanImage extends StatefulWidget {
-  const ScanImage({super.key});
+  final MobileScannerController controller;
+
+  const ScanImage({
+    super.key,
+    required this.controller,
+  });
 
   @override
   ScanImageState createState() => ScanImageState();
@@ -23,26 +38,24 @@ class ScanImageState extends State<ScanImage> {
     pickImage(context);
   }
 
-  Future pickImage(context) async {
+  Future pickImage(BuildContext context) async {
     try {
       final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+
       if (image == null) {
+        if (!context.mounted) return;
         Navigator.of(context).pop();
         return;
       }
       final imageTemp = File(image.path);
       setState(() => this.image = imageTemp);
     } on PlatformException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
-            content: Text('Failed to pick image: $e'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Theme.of(context).primaryColor,
-          ),
-        );
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Failed to pick image: $e"),
+        ),
+      );
     }
   }
 
@@ -62,12 +75,12 @@ class ScanImageState extends State<ScanImage> {
             message,
           ),
           actions: [
-            OutlinedButton(
+            TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
               child: const Text(
-                'CLOSE',
+                "Close",
               ),
             ),
           ],
@@ -76,26 +89,34 @@ class ScanImageState extends State<ScanImage> {
     );
   }
 
-  Future handleOnScan(context) async {
-    final String? result = await Scan.parse(image!.path);
+  Future handleOnScan(BuildContext context) async {
+    final BarcodeCapture? barcodes = await widget.controller.analyzeImage(
+      image!.path,
+    );
 
-    if (result != null) {
-      if (result.trim() != "") {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ScanResult(
-              resultFormat: BarcodeFormat.qrcode,
-              resultText: result,
-            ),
-          ),
-        );
-      } else {
-        showModal("Invalid QR Code", "This QR Code doesn't contain any data");
-      }
-    } else {
+    if (barcodes == null || barcodes.barcodes.isEmpty) {
       showModal("Invalid Image", "No valid QR Codes found in the image");
+      return;
     }
+
+    final Barcode result = barcodes.barcodes.first;
+
+    final ScanArchive scan =
+        ScanArchive(timestamp: getFormattedTimestamp(), barcode: result);
+    DatabaseHelper.instance.insertScan(scan).then(
+          (_) =>
+              (scanHistoryKey.currentState as ScanHistoryState?)?.loadScans(),
+        );
+
+    if (!context.mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ScanResult(
+          barcode: result,
+        ),
+      ),
+    );
   }
 
   @override
@@ -103,7 +124,7 @@ class ScanImageState extends State<ScanImage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Scan Image',
+          "Scan Image",
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
@@ -111,73 +132,49 @@ class ScanImageState extends State<ScanImage> {
         ),
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: SizedBox(
-            width: double.infinity,
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Theme.of(context).primaryColor),
-                    borderRadius: const BorderRadius.all(Radius.circular(20)),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: SizedBox(
+              width: double.infinity,
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Theme.of(context).primaryColor),
+                      borderRadius: const BorderRadius.all(Radius.circular(12)),
+                    ),
+                    child: image != null
+                        ? Image.file(
+                            image!,
+                            fit: BoxFit.cover,
+                          )
+                        : const CircularProgressIndicator(),
                   ),
-                  child: image != null
-                      ? Image.file(
-                          image!,
-                          fit: BoxFit.cover,
-                        )
-                      : const CircularProgressIndicator(),
-                ),
-                const SizedBox(height: 30),
-                if (image != null) ...[
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
+                  const Padding(padding: EdgeInsets.only(top: 16)),
+                  if (image != null) ...[
+                    FilledButton.icon(
                       onPressed: () => handleOnScan(context),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.image_search_rounded),
-                          SizedBox(width: 8),
-                          Text('Scan this Image'),
-                        ],
-                      ),
+                      icon: const Icon(Icons.qr_code_scanner_rounded),
+                      label: const Text("Scan Image"),
                     ),
-                  ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: ()=> pickImage(context),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.photo_library_outlined),
-                          SizedBox(width: 8),
-                          Text('Choose another Image'),
-                        ],
-                      ),
-                    ),
-                  ),
-                ] else ...[
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
+                    ElevatedButton.icon(
                       onPressed: () => pickImage(context),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.photo_library_outlined),
-                          SizedBox(width: 8),
-                          Text('Select an Image'),
-                        ],
-                      ),
+                      icon: const Icon(Icons.photo_library_outlined),
+                      label: const Text("Choose another Image"),
                     ),
-                  ),
+                  ] else ...[
+                    FilledButton.icon(
+                      onPressed: () => pickImage(context),
+                      icon: const Icon(Icons.photo_library_outlined),
+                      label: const Text("Select an Image"),
+                    ),
+                  ],
+                  const Padding(padding: EdgeInsets.only(bottom: 16)),
                 ],
-                const SizedBox(height: 40),
-              ],
+              ),
             ),
           ),
         ),
