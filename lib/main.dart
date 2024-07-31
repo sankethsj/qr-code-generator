@@ -58,7 +58,8 @@ class MainState extends State<Main> {
     "Scan History",
   ];
 
-  late final PageController _pageController = PageController(initialPage: selectedPageIndex);
+  late final PageController _pageController =
+      PageController(initialPage: selectedPageIndex);
 
   @override
   void dispose() {
@@ -73,7 +74,8 @@ class MainState extends State<Main> {
       setSystemStyle(Theme.of(context));
     });
 
-    final ThemeMode brightness = ThemeMode.values.byName(prefs.getString("theme") ?? "system");
+    final ThemeMode brightness =
+        ThemeMode.values.byName(prefs.getString("theme") ?? "system");
 
     return DynamicColorBuilder(
       builder: (ColorScheme? light, ColorScheme? dark) {
@@ -149,10 +151,14 @@ Future<void> setSystemStyle(ThemeData theme) async {
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        systemNavigationBarColor: edgeToEdge ? Colors.transparent : theme.colorScheme.surface,
-        systemNavigationBarDividerColor: edgeToEdge ? Colors.transparent : theme.colorScheme.surface,
+        systemNavigationBarColor:
+            edgeToEdge ? Colors.transparent : theme.colorScheme.surface,
+        systemNavigationBarDividerColor:
+            edgeToEdge ? Colors.transparent : theme.colorScheme.surface,
         systemNavigationBarContrastEnforced: true,
-        systemNavigationBarIconBrightness: theme.brightness == Brightness.light ? Brightness.dark : Brightness.light,
+        systemNavigationBarIconBrightness: theme.brightness == Brightness.light
+            ? Brightness.dark
+            : Brightness.light,
       ),
     );
   } else {

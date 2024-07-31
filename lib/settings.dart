@@ -95,7 +95,8 @@ class SettingsBottomSheetState extends State<SettingsBottomSheet> {
     });
   }
 
-  final WidgetStateProperty<Icon?> scanHistoryIcon = WidgetStateProperty.resolveWith<Icon?>(
+  final WidgetStateProperty<Icon?> scanHistoryIcon =
+      WidgetStateProperty.resolveWith<Icon?>(
     (Set<WidgetState> states) {
       if (states.contains(WidgetState.selected)) {
         return const Icon(Icons.history);
@@ -125,8 +126,11 @@ class SettingsBottomSheetState extends State<SettingsBottomSheet> {
                     "Current theme : ${theme.name.capitalize}",
                   ),
                   onTap: () {
-                    final RenderBox listTileRenderBox = context.findRenderObject()! as RenderBox;
-                    final RenderBox overlayRenderBox = Overlay.of(context).context.findRenderObject()! as RenderBox;
+                    final RenderBox listTileRenderBox =
+                        context.findRenderObject()! as RenderBox;
+                    final RenderBox overlayRenderBox = Overlay.of(context)
+                        .context
+                        .findRenderObject()! as RenderBox;
                     final RelativeRect position = RelativeRect.fromRect(
                       Rect.fromPoints(
                         listTileRenderBox.localToGlobal(
@@ -215,7 +219,8 @@ class SettingsBottomSheetState extends State<SettingsBottomSheet> {
                     _deleteAllScans();
                   }
 
-                  (scanHistoryKey.currentState as ScanHistoryState?)?.loadScans();
+                  (scanHistoryKey.currentState as ScanHistoryState?)
+                      ?.loadScans();
                 },
               ),
             ),
@@ -306,7 +311,8 @@ class _BottomSheetState extends State<BottomSheet> {
                 maintainBottomViewPadding: true,
                 child: Theme(
                   data: Theme.of(context).copyWith(
-                    cardTheme: Theme.of(context).cardTheme.copyWith(elevation: 0.75),
+                    cardTheme:
+                        Theme.of(context).cardTheme.copyWith(elevation: 0.75),
                   ),
                   child: Column(
                     children: [
@@ -348,7 +354,8 @@ class _BottomSheetState extends State<BottomSheet> {
   }
 }
 
-void showBottomSheet({required BuildContext context, required Widget child}) => showModalBottomSheet(
+void showBottomSheet({required BuildContext context, required Widget child}) =>
+    showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
