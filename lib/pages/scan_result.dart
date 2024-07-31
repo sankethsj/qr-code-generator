@@ -49,7 +49,6 @@ class ScanResultState extends State<ScanResult> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
         content: const Text("Copied to clipboard"),
         behavior: SnackBarBehavior.floating,
         backgroundColor: Theme.of(context).primaryColor,
@@ -60,7 +59,7 @@ class ScanResultState extends State<ScanResult> {
   Widget? _actionButton(BuildContext context) {
     switch (widget.barcode.type) {
       case BarcodeType.url:
-        return ElevatedButton.icon(
+        return FilledButton.icon(
           onPressed: () => launchUrl(
             Uri.parse(widget.barcode.url!.url),
             mode: LaunchMode.externalApplication,
@@ -70,7 +69,7 @@ class ScanResultState extends State<ScanResult> {
         );
       case BarcodeType.wifi:
         //TODO Intermittenly not working
-        return ElevatedButton.icon(
+        return FilledButton.icon(
           onPressed: () {
             print("Connecting to WiFi");
 
@@ -103,7 +102,7 @@ class ScanResultState extends State<ScanResult> {
           label: const Text("Connect to WiFi"),
         );
       case BarcodeType.email:
-        return ElevatedButton.icon(
+        return FilledButton.icon(
           onPressed: () {
             final Email? email = widget.barcode.email;
 
@@ -127,7 +126,7 @@ class ScanResultState extends State<ScanResult> {
           label: const Text("Send email"),
         );
       case BarcodeType.phone:
-        return ElevatedButton.icon(
+        return FilledButton.icon(
           onPressed: () {
             final Phone? phone = widget.barcode.phone;
 
@@ -142,7 +141,7 @@ class ScanResultState extends State<ScanResult> {
           label: const Text("Call number"),
         );
       case BarcodeType.sms:
-        return ElevatedButton.icon(
+        return FilledButton.icon(
           onPressed: () {
             final SMS? sms = widget.barcode.sms;
 
@@ -161,7 +160,7 @@ class ScanResultState extends State<ScanResult> {
           label: const Text("Send SMS"),
         );
       case BarcodeType.geo:
-        return ElevatedButton.icon(
+        return FilledButton.icon(
           onPressed: () {
             final GeoPoint? geoPoint = widget.barcode.geoPoint;
 
@@ -182,7 +181,7 @@ class ScanResultState extends State<ScanResult> {
         );
       case BarcodeType.contactInfo:
         //TODO Not working
-        return ElevatedButton.icon(
+        return FilledButton.icon(
           onPressed: () {
             final ContactInfo? contactInfo = widget.barcode.contactInfo;
 
@@ -204,7 +203,7 @@ class ScanResultState extends State<ScanResult> {
         );
       case BarcodeType.calendarEvent:
         //TODO undefined
-        return ElevatedButton.icon(
+        return FilledButton.icon(
           onPressed: () {
             final CalendarEvent? calendarEvent = widget.barcode.calendarEvent;
 
@@ -245,10 +244,10 @@ class ScanResultState extends State<ScanResult> {
         ),
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: SafeArea(
-            top: false,
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
             child: Column(
               children: [
                 Padding(
@@ -264,12 +263,12 @@ class ScanResultState extends State<ScanResult> {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
                         decoration: BoxDecoration(
                           border:
                               Border.all(color: Theme.of(context).primaryColor),
                           borderRadius:
-                              const BorderRadius.all(Radius.circular(20)),
+                              const BorderRadius.all(Radius.circular(16)),
                         ),
                         child: Text(
                           widget.barcode.format.name.capitalize,
@@ -283,7 +282,7 @@ class ScanResultState extends State<ScanResult> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -295,12 +294,12 @@ class ScanResultState extends State<ScanResult> {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
                         decoration: BoxDecoration(
                           border:
                               Border.all(color: Theme.of(context).primaryColor),
                           borderRadius:
-                              const BorderRadius.all(Radius.circular(20)),
+                              const BorderRadius.all(Radius.circular(16)),
                         ),
                         child: Text(
                           widget.barcode.type.name.capitalize,
@@ -321,7 +320,7 @@ class ScanResultState extends State<ScanResult> {
                       // color: Theme.of(context).highlightColor,
                       border: Border.all(color: Theme.of(context).primaryColor),
                       borderRadius: const BorderRadius.all(
-                        Radius.circular(20),
+                        Radius.circular(16),
                       ),
                     ),
                     child: SelectableText(
@@ -335,35 +334,23 @@ class ScanResultState extends State<ScanResult> {
                     ),
                   ),
                 ),
-                const Padding(padding: EdgeInsets.only(top: 10)),
-                ElevatedButton(
+                const Padding(padding: EdgeInsets.only(top: 8)),
+                if (_actionButton(context) != null) ...[
+                  _actionButton(context)!,
+                ],
+                FilledButton.icon(
                   onPressed: () => _copyToClipboard(
                     widget.barcode.displayValue ??
                         widget.barcode.rawValue ??
                         "",
                   ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.copy_rounded),
-                      Padding(padding: EdgeInsets.only(left: 8)),
-                      Text("Copy"),
-                    ],
-                  ),
+                  icon: const Icon(Icons.copy_rounded),
+                  label: const Text("Copy"),
                 ),
-                const Padding(padding: EdgeInsets.only(top: 10)),
-                _actionButton(context) ?? Container(),
-                const Padding(padding: EdgeInsets.only(top: 10)),
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: () => Navigator.pop(context),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.qr_code_scanner),
-                      Padding(padding: EdgeInsets.only(left: 8)),
-                      Text("Scan again"),
-                    ],
-                  ),
+                  icon: const Icon(Icons.qr_code_scanner),
+                  label: const Text("Scan again"),
                 ),
                 const Padding(padding: EdgeInsets.only(bottom: 16)),
               ],

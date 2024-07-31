@@ -151,7 +151,7 @@ class QrGeneratorState extends State<QrGenerator>
             message,
           ),
           actions: [
-            OutlinedButton(
+            TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -179,11 +179,11 @@ class QrGeneratorState extends State<QrGenerator>
   Widget build(BuildContext context) {
     super.build(context);
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 0),
+    return Padding(
+      padding: const EdgeInsets.all(16),
       child: ListView(
         children: <Widget>[
-          const SizedBox(height: 14),
+          const Padding(padding: EdgeInsets.only(top: 16)),
           const Center(
             child: Text(
               "Paste the link below or start typing to dynamically generate QR Codes",
@@ -194,44 +194,41 @@ class QrGeneratorState extends State<QrGenerator>
               ),
             ),
           ),
-          const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: TextField(
-              controller: _controller,
-              style: TextStyle(
-                color: Theme.of(context).primaryColor,
-                fontSize: 16.0,
-              ),
-              decoration: InputDecoration(
-                border: const OutlineInputBorder(),
-                enabledBorder: OutlineInputBorder(
-                  borderSide:
-                      BorderSide(color: Theme.of(context).primaryColorDark),
-                ),
-                labelText: "Enter your text",
-                suffixIcon: _isTextFieldEmpty
-                    ? null
-                    : IconButton(
-                        icon: const Icon(Icons.clear_rounded),
-                        onPressed: () {
-                          _controller.clear();
-                        },
-                      ),
-              ),
-              keyboardType: TextInputType.multiline,
-              maxLines: null,
-              onTapOutside: (event) {
-                FocusManager.instance.primaryFocus?.unfocus();
-              },
+          const Padding(padding: EdgeInsets.only(top: 16)),
+          TextField(
+            controller: _controller,
+            style: TextStyle(
+              color: Theme.of(context).primaryColor,
+              fontSize: 16.0,
             ),
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              enabledBorder: OutlineInputBorder(
+                borderSide:
+                    BorderSide(color: Theme.of(context).primaryColorDark),
+              ),
+              labelText: "Enter your text",
+              suffixIcon: _isTextFieldEmpty
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.clear_rounded),
+                      onPressed: () {
+                        _controller.clear();
+                      },
+                    ),
+            ),
+            keyboardType: TextInputType.multiline,
+            maxLines: null,
+            onTapOutside: (event) {
+              FocusManager.instance.primaryFocus?.unfocus();
+            },
           ),
           if (!_isTextFieldEmpty) ...[
-            const SizedBox(height: 20),
+            const Padding(padding: EdgeInsets.only(top: 16)),
             Center(
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     width: 3.0,
                     color: Theme.of(context).hintColor,
@@ -240,52 +237,40 @@ class QrGeneratorState extends State<QrGenerator>
                 ),
                 child: QrImageView(
                   data: _controller.text,
-                  size: 360,
                   padding: const EdgeInsets.all(16),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const Padding(padding: EdgeInsets.only(top: 16)),
             Center(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  FilledButton(
+                  FilledButton.icon(
                     style: const ButtonStyle(
-                      padding: MaterialStatePropertyAll(EdgeInsets.all(10.0)),
+                      padding: MaterialStatePropertyAll(EdgeInsets.all(12)),
                     ),
                     onPressed: () {
                       saveQrCode(context);
                     },
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.save),
-                        SizedBox(width: 8),
-                        Text("Save to Gallery"),
-                      ],
-                    ),
+                    icon: const Icon(Icons.save),
+                    label: const Text("Save to Gallery"),
                   ),
-                  FilledButton(
+                  FilledButton.icon(
                     style: const ButtonStyle(
-                      padding: MaterialStatePropertyAll(EdgeInsets.all(10.0)),
+                      padding: MaterialStatePropertyAll(EdgeInsets.all(12)),
                     ),
                     onPressed: () {
                       shareQrCode();
                     },
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.share),
-                        SizedBox(width: 8),
-                        Text("Share QR"),
-                      ],
-                    ),
+                    icon: const Icon(Icons.share),
+                    label: const Text("Share QR"),
                   ),
                 ],
               ),
             ),
           ],
+          const Padding(padding: EdgeInsets.only(bottom: 16)),
         ],
       ),
     );

@@ -18,7 +18,12 @@ import "package:qr_code_gen/utils/model.dart";
 import "package:qr_code_gen/utils/utils.dart";
 
 class ScanImage extends StatefulWidget {
-  const ScanImage({super.key});
+  final MobileScannerController controller;
+
+  const ScanImage({
+    super.key,
+    required this.controller,
+  });
 
   @override
   ScanImageState createState() => ScanImageState();
@@ -26,18 +31,11 @@ class ScanImage extends StatefulWidget {
 
 class ScanImageState extends State<ScanImage> {
   File? image;
-  MobileScannerController controller = MobileScannerController();
 
   @override
   void initState() {
     super.initState();
     pickImage(context);
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
   }
 
   Future pickImage(BuildContext context) async {
@@ -55,7 +53,6 @@ class ScanImageState extends State<ScanImage> {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
           content: Text("Failed to pick image: $e"),
           behavior: SnackBarBehavior.floating,
           backgroundColor: Theme.of(context).primaryColor,
@@ -80,12 +77,12 @@ class ScanImageState extends State<ScanImage> {
             message,
           ),
           actions: [
-            OutlinedButton(
+            TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
               child: const Text(
-                "CLOSE",
+                "Close",
               ),
             ),
           ],
@@ -95,7 +92,7 @@ class ScanImageState extends State<ScanImage> {
   }
 
   Future handleOnScan(BuildContext context) async {
-    final BarcodeCapture? barcodes = await controller.analyzeImage(
+    final BarcodeCapture? barcodes = await widget.controller.analyzeImage(
       image!.path,
     );
 
@@ -137,73 +134,49 @@ class ScanImageState extends State<ScanImage> {
         ),
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: SizedBox(
-            width: double.infinity,
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Theme.of(context).primaryColor),
-                    borderRadius: const BorderRadius.all(Radius.circular(20)),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: SizedBox(
+              width: double.infinity,
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Theme.of(context).primaryColor),
+                      borderRadius: const BorderRadius.all(Radius.circular(12)),
+                    ),
+                    child: image != null
+                        ? Image.file(
+                            image!,
+                            fit: BoxFit.cover,
+                          )
+                        : const CircularProgressIndicator(),
                   ),
-                  child: image != null
-                      ? Image.file(
-                          image!,
-                          fit: BoxFit.cover,
-                        )
-                      : const CircularProgressIndicator(),
-                ),
-                const SizedBox(height: 30),
-                if (image != null) ...[
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
+                  const Padding(padding: EdgeInsets.only(top: 16)),
+                  if (image != null) ...[
+                    FilledButton.icon(
                       onPressed: () => handleOnScan(context),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.image_search_rounded),
-                          SizedBox(width: 8),
-                          Text("Scan this Image"),
-                        ],
-                      ),
+                      icon: const Icon(Icons.qr_code_scanner_rounded),
+                      label: const Text("Scan Image"),
                     ),
-                  ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
+                    ElevatedButton.icon(
                       onPressed: () => pickImage(context),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.photo_library_outlined),
-                          SizedBox(width: 8),
-                          Text("Choose another Image"),
-                        ],
-                      ),
+                      icon: const Icon(Icons.photo_library_outlined),
+                      label: const Text("Choose another Image"),
                     ),
-                  ),
-                ] else ...[
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
+                  ] else ...[
+                    FilledButton.icon(
                       onPressed: () => pickImage(context),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.photo_library_outlined),
-                          SizedBox(width: 8),
-                          Text("Select an Image"),
-                        ],
-                      ),
+                      icon: const Icon(Icons.photo_library_outlined),
+                      label: const Text("Select an Image"),
                     ),
-                  ),
+                  ],
+                  const Padding(padding: EdgeInsets.only(bottom: 16)),
                 ],
-                const SizedBox(height: 40),
-              ],
+              ),
             ),
           ),
         ),

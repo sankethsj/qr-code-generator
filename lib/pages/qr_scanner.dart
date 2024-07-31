@@ -33,6 +33,7 @@ class QrScannerState extends State<QrScanner>
   final MobileScannerController controller = MobileScannerController(
     useNewCameraSelector: true,
   );
+  bool covered = false;
 
   StreamSubscription<Object?>? _subscription;
 
@@ -50,10 +51,10 @@ class QrScannerState extends State<QrScanner>
       case AppLifecycleState.paused:
         return;
       case AppLifecycleState.resumed:
+        if (covered) return;
         // Restart the scanner when the app is resumed.
         // Don't forget to resume listening to the barcode events.
         _subscription = controller.barcodes.listen(_handleBarcode);
-
         unawaited(controller.start());
       case AppLifecycleState.inactive:
         // Stop the scanner when the app is paused.
@@ -102,15 +103,17 @@ class QrScannerState extends State<QrScanner>
 
   @override
   void didPopNext() {
-    controller.start();
+    covered = false;
     _subscription = controller.barcodes.listen(_handleBarcode);
+    controller.start();
   }
 
   @override
   void didPushNext() {
-    controller.stop();
+    covered = true;
     unawaited(_subscription?.cancel());
     _subscription = null;
+    controller.stop();
   }
 
   @override
@@ -149,23 +152,21 @@ class QrScannerState extends State<QrScanner>
                         await controller.switchCamera();
                         setState(() {});
                       },
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.cameraswitch_rounded),
-                        ],
-                      ),
+                      child: const Icon(Icons.cameraswitch_rounded),
                     ),
-                    ElevatedButton(
+                    ElevatedButton.icon(
                       onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ScanImage(),
+                            builder: (context) => ScanImage(
+                              controller: controller,
+                            ),
                           ),
                         );
                       },
-                      child: const Text("Select Image"),
+                      icon: const Icon(Icons.image_rounded),
+                      label: const Text("Select Image"),
                     ),
                   ],
                 ),
@@ -188,10 +189,6 @@ class QrScannerState extends State<QrScanner>
           (_) =>
               (scanHistoryKey.currentState as ScanHistoryState?)?.loadScans(),
         );
-
-    if (controller.value.torchState == TorchState.on) {
-      controller.toggleTorch();
-    }
 
     Navigator.push(
       context,
@@ -239,7 +236,7 @@ class QrScannerState extends State<QrScanner>
             if (!value.isInitialized ||
                 !value.isRunning ||
                 value.error != null) {
-              return const SizedBox();
+              return Container();
             }
 
             return CustomPaint(

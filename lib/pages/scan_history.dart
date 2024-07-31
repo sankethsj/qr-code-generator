@@ -57,6 +57,7 @@ class ScanHistoryState extends State<ScanHistory>
               } else {
                 return ListView.builder(
                   itemCount: snapshot.data!.length,
+                  padding: const EdgeInsets.only(bottom: 16),
                   itemBuilder: (context, index) {
                     final scan = snapshot.data![index];
                     return ScanArchiveListItem(
@@ -75,7 +76,7 @@ class ScanHistoryState extends State<ScanHistory>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text("Scan history is turned off"),
-                const Padding(padding: EdgeInsets.all(8)),
+                const Padding(padding: EdgeInsets.only(top: 8)),
                 ElevatedButton(
                   onPressed: () {
                     setState(() {
@@ -104,7 +105,7 @@ class ScanArchiveListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
       child: Card(
         elevation: 2,
         shape: RoundedRectangleBorder(
@@ -121,7 +122,7 @@ class ScanArchiveListItem extends StatelessWidget {
             ),
           ),
           subtitle: Padding(
-            padding: const EdgeInsets.fromLTRB(0, 8.0, 0, 0),
+            padding: const EdgeInsets.only(top: 8),
             child: Text(
               "Scanned on: ${scan.timestamp}",
               style: const TextStyle(

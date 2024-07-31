@@ -58,8 +58,7 @@ class MainState extends State<Main> {
     "Scan History",
   ];
 
-  late final PageController _pageController =
-      PageController(initialPage: selectedPageIndex);
+  late final PageController _pageController = PageController(initialPage: selectedPageIndex);
 
   @override
   void dispose() {
@@ -74,8 +73,7 @@ class MainState extends State<Main> {
       setSystemStyle(Theme.of(context));
     });
 
-    final ThemeMode brightness =
-        ThemeMode.values.byName(prefs.getString("theme") ?? "system");
+    final ThemeMode brightness = ThemeMode.values.byName(prefs.getString("theme") ?? "system");
 
     return DynamicColorBuilder(
       builder: (ColorScheme? light, ColorScheme? dark) {
@@ -93,48 +91,38 @@ class MainState extends State<Main> {
                   fontWeight: FontWeight.w900,
                 ),
               ),
-              actions: const <Widget>[Settings()],
+              actions: const <Widget>[SettingsButton()],
             ),
             body: PageView(
               controller: _pageController,
               physics: const NeverScrollableScrollPhysics(),
               children: pages,
             ),
-            bottomNavigationBar: Container(
-              clipBehavior: Clip.hardEdge,
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.only(
-                  topRight: Radius.circular(16),
-                  topLeft: Radius.circular(16),
+            bottomNavigationBar: NavigationBar(
+              selectedIndex: selectedPageIndex,
+              onDestinationSelected: (int index) {
+                setState(() {
+                  selectedPageIndex = index;
+                  _pageController.jumpToPage(selectedPageIndex);
+                });
+              },
+              destinations: const <NavigationDestination>[
+                NavigationDestination(
+                  selectedIcon: Icon(Icons.qr_code_scanner),
+                  icon: Icon(Icons.qr_code_scanner_outlined),
+                  label: "QR Scanner",
                 ),
-              ),
-              child: NavigationBar(
-                selectedIndex: selectedPageIndex,
-                onDestinationSelected: (int index) {
-                  setState(() {
-                    selectedPageIndex = index;
-                    _pageController.jumpToPage(selectedPageIndex);
-                  });
-                },
-                destinations: const <NavigationDestination>[
-                  NavigationDestination(
-                    selectedIcon: Icon(Icons.qr_code_scanner),
-                    icon: Icon(Icons.qr_code_scanner_outlined),
-                    label: "QR Scanner",
-                  ),
-                  NavigationDestination(
-                    selectedIcon: Icon(Icons.qr_code_2),
-                    icon: Icon(Icons.qr_code_2_outlined),
-                    label: "QR Generator",
-                  ),
-                  NavigationDestination(
-                    selectedIcon: Icon(Icons.history),
-                    icon: Icon(Icons.history_outlined),
-                    label: "Scan History",
-                  ),
-                ],
-                animationDuration: const Duration(seconds: 1),
-              ),
+                NavigationDestination(
+                  selectedIcon: Icon(Icons.qr_code_2),
+                  icon: Icon(Icons.qr_code_2_outlined),
+                  label: "QR Generator",
+                ),
+                NavigationDestination(
+                  selectedIcon: Icon(Icons.history),
+                  icon: Icon(Icons.history_outlined),
+                  label: "Scan History",
+                ),
+              ],
             ),
           ),
         );
@@ -161,14 +149,10 @@ Future<void> setSystemStyle(ThemeData theme) async {
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        systemNavigationBarColor:
-            edgeToEdge ? Colors.transparent : theme.colorScheme.surface,
-        systemNavigationBarDividerColor:
-            edgeToEdge ? Colors.transparent : theme.colorScheme.surface,
+        systemNavigationBarColor: edgeToEdge ? Colors.transparent : theme.colorScheme.surface,
+        systemNavigationBarDividerColor: edgeToEdge ? Colors.transparent : theme.colorScheme.surface,
         systemNavigationBarContrastEnforced: true,
-        systemNavigationBarIconBrightness: theme.brightness == Brightness.light
-            ? Brightness.dark
-            : Brightness.light,
+        systemNavigationBarIconBrightness: theme.brightness == Brightness.light ? Brightness.dark : Brightness.light,
       ),
     );
   } else {
