@@ -54,8 +54,6 @@ class ScanImageState extends State<ScanImage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Failed to pick image: $e"),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Theme.of(context).primaryColor,
         ),
       );
     }

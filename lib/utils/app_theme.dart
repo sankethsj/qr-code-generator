@@ -143,7 +143,7 @@ class AppTheme {
         tabAlignment: TabAlignment.start,
       ),
       snackBarTheme: SnackBarThemeData(
-        behavior: SnackBarBehavior.fixed,
+        behavior: SnackBarBehavior.floating,
         backgroundColor: ElevationOverlay.applySurfaceTint(
           colorScheme.inverseSurface,
           colorScheme.surfaceTint,

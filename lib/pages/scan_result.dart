@@ -3,6 +3,9 @@ import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 
 // Package imports:
+import "package:add_2_calendar/add_2_calendar.dart";
+import "package:contact_add/contact.dart";
+import "package:contact_add/contact_add.dart";
 import "package:flex_color_scheme/flex_color_scheme.dart";
 import "package:mobile_scanner/mobile_scanner.dart";
 import "package:url_launcher/url_launcher.dart";
@@ -48,10 +51,8 @@ class ScanResultState extends State<ScanResult> {
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text("Copied to clipboard"),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Theme.of(context).primaryColor,
+      const SnackBar(
+        content: Text("Copied to clipboard"),
       ),
     );
   }
@@ -68,11 +69,8 @@ class ScanResultState extends State<ScanResult> {
           label: const Text("Open link in browser"),
         );
       case BarcodeType.wifi:
-        //TODO Intermittenly not working
         return FilledButton.icon(
           onPressed: () {
-            print("Connecting to WiFi");
-
             final WiFi? wifi = widget.barcode.wifi;
 
             if (wifi == null || wifi.ssid == null) return;
@@ -95,7 +93,17 @@ class ScanResultState extends State<ScanResult> {
                 wifi.ssid!,
                 password: wifi.password,
                 security: security,
-              );
+              ).then((value) {
+                if (!value) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        "Failed to connect to WiFi network.\nIs it already saved?",
+                      ),
+                    ),
+                  );
+                }
+              });
             }
           },
           icon: const Icon(Icons.wifi_rounded),
@@ -180,46 +188,41 @@ class ScanResultState extends State<ScanResult> {
           label: const Text("Open in Maps"),
         );
       case BarcodeType.contactInfo:
-        //TODO Not working
         return FilledButton.icon(
           onPressed: () {
             final ContactInfo? contactInfo = widget.barcode.contactInfo;
 
             if (contactInfo != null) {
-              final Uri contactUri = Uri(
-                scheme: "content",
-                path: "contacts",
-                queryParameters: {
-                  "name": contactInfo.name,
-                  "phone": contactInfo.phones.join(","),
-                  "email": contactInfo.emails.join(","),
-                },
+              final Contact contact = Contact(
+                firstname: contactInfo.name?.first ?? "",
+                lastname: contactInfo.name?.last ?? "",
+                company: contactInfo.organization,
+                phone: contactInfo.phones.first.number,
+                email: contactInfo.emails.first.address,
               );
-              launchUrl(contactUri, mode: LaunchMode.externalApplication);
+
+              ContactAdd.addContact(contact);
             }
           },
           icon: const Icon(Icons.contact_page_rounded),
           label: const Text("Add to Contacts"),
         );
       case BarcodeType.calendarEvent:
-        //TODO undefined
         return FilledButton.icon(
           onPressed: () {
             final CalendarEvent? calendarEvent = widget.barcode.calendarEvent;
 
             if (calendarEvent != null) {
-              final Uri calendarUri = Uri(
-                scheme: "content",
-                path: "calendar",
-                queryParameters: {
-                  "title": calendarEvent.summary,
-                  "description": calendarEvent.description,
-                  "location": calendarEvent.location,
-                  "start": calendarEvent.start?.toIso8601String(),
-                  "end": calendarEvent.end?.toIso8601String(),
-                },
+              final Event event = Event(
+                title: calendarEvent.summary ?? "No title",
+                description: calendarEvent.description,
+                location: calendarEvent.location,
+                startDate: calendarEvent.start ?? DateTime.now(),
+                endDate: calendarEvent.end ??
+                    DateTime.now().add(const Duration(hours: 1)),
               );
-              launchUrl(calendarUri, mode: LaunchMode.externalApplication);
+
+              Add2Calendar.addEvent2Cal(event);
             }
           },
           icon: const Icon(Icons.calendar_today_rounded),
