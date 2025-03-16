@@ -145,9 +145,9 @@ class QrScannerState extends State<QrScanner> {
           builder: (context) => ScanResult(
             resultFormat: result!.format,
             resultText: result!.code ?? "No data found!",
+            saveToHistory: true,
           ),
         ),
-      ).then((value) => controller.resumeCamera());
-    });
+      ).then((value) => controller.resumeCamera());    });
   }
 }

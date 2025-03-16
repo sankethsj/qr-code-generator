@@ -13,7 +13,8 @@ class ScanHistory extends StatefulWidget {
 
 class _ScanHistoryState extends State<ScanHistory> {
   late Future<List<ScanArchive>> scanHistory;
-  bool isScanHistoryOn = false;
+  final Set<int> _selectedScans = {};
+  bool _selectAll = false;
 
   @override
   void initState() {
@@ -28,9 +29,25 @@ class _ScanHistoryState extends State<ScanHistory> {
     });
   }
 
-  Future<void> _deleteScan(int id) async {
-    await DatabaseHelper.instance.deleteScan(id);
+  Future<void> _deleteSelectedScans() async {
+    for (int id in _selectedScans) {
+      await DatabaseHelper.instance.deleteScan(id);
+    }
+    _selectedScans.clear();
     _loadScans(); // Refresh the list after deletion
+  }
+
+  void _toggleSelectAll() {
+    setState(() {
+      _selectAll = !_selectAll;
+      if (_selectAll) {
+        scanHistory.then((scans) {
+          _selectedScans.addAll(scans.map((scan) => scan.id!));
+        });
+      } else {
+        _selectedScans.clear();
+      }
+    });
   }
 
   @override
@@ -38,6 +55,16 @@ class _ScanHistoryState extends State<ScanHistory> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Scan History'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.select_all),
+            onPressed: _toggleSelectAll,
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: _selectedScans.isEmpty ? null : _deleteSelectedScans,
+          ),
+        ],
       ),
       body: FutureBuilder<List<ScanArchive>>(
         future: scanHistory,
@@ -53,10 +80,18 @@ class _ScanHistoryState extends State<ScanHistory> {
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
                 final scan = snapshot.data![index];
+                final isSelected = _selectedScans.contains(scan.id);
                 return ScanArchiveListItem(
                   scan: scan,
-                  onDelete: (id) {
-                    _deleteScan(id);
+                  isSelected: isSelected,
+                  onSelect: (selected) {
+                    setState(() {
+                      if (selected) {
+                        _selectedScans.add(scan.id!);
+                      } else {
+                        _selectedScans.remove(scan.id);
+                      }
+                    });
                   },
                 );
               },
@@ -70,12 +105,14 @@ class _ScanHistoryState extends State<ScanHistory> {
 
 class ScanArchiveListItem extends StatelessWidget {
   final ScanArchive scan;
-  final Function(int) onDelete;
+  final bool isSelected;
+  final Function(bool) onSelect;
 
   const ScanArchiveListItem({
     super.key,
     required this.scan,
-    required this.onDelete,
+    required this.isSelected,
+    required this.onSelect,
   });
 
   @override
@@ -88,13 +125,17 @@ class ScanArchiveListItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         child: ListTile(
+          leading: Checkbox(
+            value: isSelected,
+            onChanged: (selected) => onSelect(selected!),
+          ),
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
           title: Text(
             scan.scanText,
             style: const TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 16,
+              fontSize: 14,
             ),
           ),
           subtitle: Padding(
@@ -103,15 +144,10 @@ class ScanArchiveListItem extends StatelessWidget {
               'Scanned on: ${scan.timestamp}',
               style: const TextStyle(
                 fontStyle: FontStyle.italic,
-                fontSize: 14,
+                fontSize: 12,
+                color: Colors.grey
               ),
             ),
-          ),
-          trailing: IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: () {
-              onDelete(scan.id!);
-            },
           ),
           onTap: () => {
             Navigator.push(

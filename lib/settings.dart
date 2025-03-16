@@ -23,7 +23,7 @@ class SettingsState extends State<Settings> {
   );
 
   bool isDarkTheme = false;
-  bool isScanHistoryOn = false;
+  bool scanHistory = false;
 
   @override
   void initState() {
@@ -49,28 +49,27 @@ class SettingsState extends State<Settings> {
 
   loadPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool isDark = prefs.getBool('isDark') ?? false;
-    bool scanHistory = prefs.getBool('scanHistory') ?? false;
+
     setState(() {
-      isDarkTheme = isDark;
-      isScanHistoryOn = scanHistory;
+      isDarkTheme = prefs.getBool('isDark') ?? false;
+      scanHistory = prefs.getBool('scanHistory') ?? false;
     });
   }
 
-  final MaterialStateProperty<Icon?> themeIcon =
-      MaterialStateProperty.resolveWith<Icon?>(
-    (Set<MaterialState> states) {
-      if (states.contains(MaterialState.selected)) {
+  final WidgetStateProperty<Icon?> themeIcon =
+      WidgetStateProperty.resolveWith<Icon?>(
+    (Set<WidgetState> states) {
+      if (states.contains(WidgetState.selected)) {
         return const Icon(Icons.dark_mode);
       }
       return const Icon(Icons.light_mode);
     },
   );
 
-  final MaterialStateProperty<Icon?> scanHistoryIcon =
-      MaterialStateProperty.resolveWith<Icon?>(
-    (Set<MaterialState> states) {
-      if (states.contains(MaterialState.selected)) {
+  final WidgetStateProperty<Icon?> scanHistoryIcon =
+      WidgetStateProperty.resolveWith<Icon?>(
+    (Set<WidgetState> states) {
+      if (states.contains(WidgetState.selected)) {
         return const Icon(Icons.history);
       }
       return const Icon(Icons.history_toggle_off);
@@ -160,17 +159,17 @@ class SettingsState extends State<Settings> {
                         leading: const Icon(Icons.history),
                         title: const Text('Scan History'),
                         subtitle: Text(
-                          'Turn ${isScanHistoryOn ? 'OFF' : 'ON'} Scan history',
+                          'Turn ${scanHistory ? 'OFF' : 'ON'} Scan history',
                           style: const TextStyle(fontWeight: FontWeight.w100),
                         ),
                         trailing: Switch(
                           thumbIcon: scanHistoryIcon,
-                          value: isScanHistoryOn,
+                          value: scanHistory,
                           onChanged: (bool value) async {
                             SharedPreferences prefs = await SharedPreferences.getInstance();
-                            prefs.setBool('scanHistory', !isScanHistoryOn);
+                            prefs.setBool('scanHistory', !scanHistory);
                             setState(() {
-                              isScanHistoryOn = !isScanHistoryOn;
+                              scanHistory = !scanHistory;
                             });
                           },
                         ),

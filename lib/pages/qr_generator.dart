@@ -208,7 +208,7 @@ class QrGeneratorState extends State<QrGenerator> {
                   children: [
                     FilledButton(
                       style: const ButtonStyle(
-                        padding: MaterialStatePropertyAll(EdgeInsets.all(10.0)),
+                        padding: WidgetStatePropertyAll(EdgeInsets.all(10.0)),
                       ),
                       onPressed: () {
                         saveQrCode(context);
@@ -224,7 +224,7 @@ class QrGeneratorState extends State<QrGenerator> {
                     ),
                     FilledButton(
                       style: const ButtonStyle(
-                        padding: MaterialStatePropertyAll(EdgeInsets.all(10.0)),
+                        padding: WidgetStatePropertyAll(EdgeInsets.all(10.0)),
                       ),
                       onPressed: () {
                         shareQrCode();
