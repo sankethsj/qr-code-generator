@@ -8,6 +8,7 @@ import 'package:qr_code_gen/utils/db.dart';
 import 'package:qr_code_gen/utils/url_checker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:wifi_iot/wifi_iot.dart';
 
 class ScanResult extends StatefulWidget {
   final BarcodeFormat resultFormat;
@@ -55,6 +56,10 @@ class ScanResultState extends State<ScanResult> {
   String ipAddress = "";
   String sslIssuer = "";
   String sslValidity = "";
+  String ssid = "";
+  String password = "";
+  String encryption = "";
+  String hidden = "";
 
   String getFormattedTimestamp() {
     final now = DateTime.now();
@@ -146,6 +151,93 @@ class ScanResultState extends State<ScanResult> {
     }
   }
 
+  Future<void> _extractWifiDetails(String wifiDetails) async {
+    // Parse the WiFi details from the QR code
+    setState(() {
+      ssid = RegExp(r'S:([^;]+);').firstMatch(wifiDetails)?.group(1) ?? '';
+      password = RegExp(r'P:([^;]+);').firstMatch(wifiDetails)?.group(1) ?? '';
+      encryption =
+          RegExp(r'T:([^;]+);').firstMatch(wifiDetails)?.group(1) ?? '';
+      hidden = RegExp(r'H:([^;]+);').firstMatch(wifiDetails)?.group(1) ?? '';
+    });
+  }
+
+  Future<void> _ensureWifiEnabled() async {
+    bool wifiEnabled = await WiFiForIoTPlugin.isEnabled();
+    if (!wifiEnabled) {
+      bool success = await WiFiForIoTPlugin.setEnabled(true) ?? false;
+      if (!success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
+            content: const Text('Failed to turn ON WiFi. Turn ON manually.'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Theme.of(context).primaryColor,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _connectToWifi(String wifiDetails) async {
+    if (ssid != '' && encryption != '') {
+      NetworkSecurity security;
+      switch (encryption.toUpperCase()) {
+        case 'WPA':
+          security = NetworkSecurity.WPA;
+          break;
+        case 'WEP':
+          security = NetworkSecurity.WEP;
+          break;
+        case 'SAE':
+          security = NetworkSecurity.WPA;
+          break;
+        default:
+          security = NetworkSecurity.NONE;
+      }
+
+      await _ensureWifiEnabled();
+
+      bool connected = await WiFiForIoTPlugin.connect(
+        ssid,
+        password: password,
+        security: security,
+        joinOnce: true,
+        withInternet: true,
+        isHidden: hidden.toLowerCase() == 'true',
+      );
+
+      if (connected) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
+            content: Text('Connecting to WiFi: $ssid'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Theme.of(context).primaryColor,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
+            content: const Text('Failed to connect to WiFi'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Theme.of(context).primaryColor,
+          ),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
+          content: const Text('Invalid WiFi details'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Theme.of(context).primaryColor,
+        ),
+      );
+    }
+  }
+
   Future<void> _performAction() async {
     switch (resultType) {
       case "UPI":
@@ -158,7 +250,7 @@ class ScanResultState extends State<ScanResult> {
         await _launchUrl(resultText);
         break;
       case "WIFI":
-        // todo
+        await _connectToWifi(resultText);
         break;
       default:
         break;
@@ -183,6 +275,7 @@ class ScanResultState extends State<ScanResult> {
       }
     } else if (text.startsWith('WIFI:')) {
       tempResultType = "WIFI";
+      _extractWifiDetails(text);
     } else {
       tempResultType = "TEXT";
     }
@@ -441,6 +534,55 @@ class ScanResultState extends State<ScanResult> {
                             color: Colors.grey, fontStyle: FontStyle.italic),
                       ),
                     ),
+                ],
+                if (resultType == "WIFI") ...[
+                  const SizedBox(height: 20),
+                  ListTile(
+                    title: const Text(
+                      'WiFi Details',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Text(
+                              'Wifi Name:',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                            const SizedBox(width: 8),
+                            SelectableText(
+                              ssid,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            const Text(
+                              'Password:',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                            const SizedBox(width: 8),
+                            SelectableText(
+                              password,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ],
             ),

@@ -125,7 +125,12 @@ class QrScannerState extends State<QrScanner> {
   void _onPermissionSet(BuildContext context, QRViewController ctrl, bool p) {
     if (!p) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Camera Permission denied')),
+        SnackBar(
+          margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
+          content: const Text('Camera Permission denied'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Theme.of(context).primaryColor,
+        ),
       );
     }
   }
@@ -148,6 +153,7 @@ class QrScannerState extends State<QrScanner> {
             saveToHistory: true,
           ),
         ),
-      ).then((value) => controller.resumeCamera());    });
+      ).then((value) => controller.resumeCamera());
+    });
   }
 }
