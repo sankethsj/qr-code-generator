@@ -98,6 +98,21 @@ flutter:
           weight: 500
         - asset: assets/font/Raleway-Light.ttf
           weight: 300
+    - family: OpenSans
+      fonts:
+        - asset: assets/font/OpenSans-Regular.ttf
+        - asset: assets/font/OpenSans-Bold.ttf
+          weight: 700
+        - asset: assets/font/OpenSans-ExtraBold.ttf
+          weight: 800
+        - asset: assets/font/OpenSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/font/OpenSans-Medium.ttf
+          weight: 500
+        - asset: assets/font/OpenSans-Light.ttf
+          weight: 300
+        - asset: assets/font/OpenSans-Italic.ttf
+          style: italic
         
   # fonts:
   #   - family: Schyler

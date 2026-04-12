@@ -5,7 +5,7 @@ import 'package:qr_code_gen/utils/model.dart';
 class DatabaseHelper {
   // This is the actual database filename that is saved in the docs directory.
   static const _databaseName = "MyQr.db";
-  static const _databaseVersion = 1;
+  static const _databaseVersion = 2;
 
   // Make this a singleton class.
   DatabaseHelper._privateConstructor();
@@ -21,12 +21,13 @@ class DatabaseHelper {
   }
 
   // Open the database and create the table if it doesn't exist.
-  _initDatabase() async {
+  Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), _databaseName);
     return await openDatabase(
       path,
       version: _databaseVersion,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -36,9 +37,19 @@ class DatabaseHelper {
           CREATE TABLE scan_archive (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp TEXT NOT NULL,
-            scanText TEXT NOT NULL
+            scanText TEXT NOT NULL,
+            scanType INTEGER
           )
           ''');
+  }
+
+  // Handle database migrations for version upgrades
+  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    // Add your migration logic here
+    // This example migrates from version 1 to version 2
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE scan_archive ADD COLUMN scanType INTEGER');
+    }
   }
 
   // Helper methods
@@ -59,6 +70,7 @@ class DatabaseHelper {
         id: maps[i]['id'],
         timestamp: maps[i]['timestamp'],
         scanText: maps[i]['scanText'],
+        scanType: maps[i]['scanType'] ?? -1,
       );
     });
   }

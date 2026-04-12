@@ -156,7 +156,7 @@ class ScanArchiveListItem extends StatelessWidget {
               MaterialPageRoute(
                 builder: (context) => ScanResult(
                   resultText: scan.scanText,
-                  resultFormat: BarcodeFormat.qrCode,
+                  resultFormat: BarcodeFormat.fromRawValue(scan.scanType),
                 ),
               ),
             )

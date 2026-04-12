@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-// import 'package:qr_code_scanner/qr_code_scanner.dart';
+
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -94,8 +94,10 @@ class ScanResultState extends State<ScanResult> {
     bool scanHistory = prefs.getBool('scanHistory') ?? false;
 
     if (scanHistory && widget.saveToHistory) {
-      ScanArchive scan =
-          ScanArchive(timestamp: getFormattedTimestamp(), scanText: resultText);
+      ScanArchive scan = ScanArchive(
+          timestamp: getFormattedTimestamp(),
+          scanText: resultText,
+          scanType: widget.resultFormat.rawValue);
       DatabaseHelper.instance.insertScan(scan);
     }
   }
@@ -405,9 +407,9 @@ class ScanResultState extends State<ScanResult> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 60),
+                const SizedBox(height: 20),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     const Text(
                       'Scan Type :',
@@ -416,15 +418,16 @@ class ScanResultState extends State<ScanResult> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
+                    const SizedBox(width: 10),
                     Container(
-                      padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
+                      padding: const EdgeInsets.fromLTRB(8, 2, 8, 2),
                       decoration: BoxDecoration(
                         border:
                             Border.all(color: Theme.of(context).primaryColor),
                         borderRadius:
                             const BorderRadius.all(Radius.circular(10)),
                       ),
-                      child: Text(
+                      child: SelectableText(
                         resultFormat,
                         style: const TextStyle(
                           fontSize: 18,

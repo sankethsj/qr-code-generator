@@ -50,13 +50,13 @@ class MainState extends State<Main> {
               scheme: usedScheme,
               appBarElevation: 0.5,
               useMaterial3: true,
-              fontFamily: 'Raleway',
+              fontFamily: 'OpenSans',
             ),
             darkTheme: FlexThemeData.dark(
               scheme: usedScheme,
               appBarElevation: 2,
               useMaterial3: true,
-              fontFamily: 'Raleway',
+              fontFamily: 'OpenSans',
             ),
             themeMode: themePreference.currentTheme,
             home: Scaffold(

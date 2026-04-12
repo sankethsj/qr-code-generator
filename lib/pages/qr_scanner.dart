@@ -13,7 +13,6 @@ class QrScanner extends StatefulWidget {
 }
 
 class QrScannerState extends State<QrScanner> {
-  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   late String scanResult;
   late MobileScannerController controller;
 
@@ -67,12 +66,13 @@ class QrScannerState extends State<QrScanner> {
                       child: ElevatedButton(
                         onPressed: () async {
                           await controller.toggleTorch();
+                          setState(() {}); // Add this to rebuild the widget
                         },
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              controller.torchEnabled == true
+                              controller.value.torchState == TorchState.on
                                   ? Icons.flashlight_on_rounded
                                   : Icons.flashlight_off_rounded,
                             ),
@@ -85,6 +85,7 @@ class QrScannerState extends State<QrScanner> {
                       child: ElevatedButton(
                         onPressed: () async {
                           await controller.switchCamera();
+                          setState(() {}); // Add this to rebuild the widget
                         },
                         child: const Icon(Icons.cameraswitch_rounded),
                       ),
@@ -110,43 +111,19 @@ class QrScannerState extends State<QrScanner> {
   }
 
   Widget _buildQrView(BuildContext context) {
-    // var scanArea = (MediaQuery.of(context).size.width < 400 ||
-    //         MediaQuery.of(context).size.height < 400)
-    //     ? 280.0
-    //     : 400.0;
-
     return MobileScanner(
       controller: controller,
+      overlayBuilder: (context, constraints) => BarcodeOverlay(
+        boxFit: BoxFit.cover,
+        controller: controller,
+        color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+      ),
       onDetect: _onQRViewCreated,
     );
-    // return QRView(
-    //   key: qrKey,
-    //   onQRViewCreated: _onQRViewCreated,
-    //   overlay: QrScannerOverlayShape(
-    //       borderColor: Theme.of(context).primaryColor,
-    //       borderRadius: 10,
-    //       borderLength: 30,
-    //       borderWidth: 10,
-    //       cutOutSize: scanArea),
-    //   onPermissionSet: (ctrl, p) => _onPermissionSet(context, ctrl, p),
-    // );
   }
 
-  // void _onPermissionSet(BuildContext context, QRViewController ctrl, bool p) {
-  //   if (!p) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
-  //         content: const Text('Camera Permission denied'),
-  //         behavior: SnackBarBehavior.floating,
-  //         backgroundColor: Theme.of(context).primaryColor,
-  //       ),
-  //     );
-  //   }
-  // }
-
   void _onQRViewCreated(BarcodeCapture capture) {
-    controller.pause();
+    controller.stop();
 
     setState(() {
       scanResult = capture.barcodes.first.rawValue!;

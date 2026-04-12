@@ -2,8 +2,13 @@ class ScanArchive {
   int? id;
   late String timestamp;
   late String scanText;
+  late int scanType;
 
-  ScanArchive({this.id, required this.timestamp, required this.scanText});
+  ScanArchive(
+      {this.id,
+      required this.timestamp,
+      required this.scanText,
+      this.scanType = -1});
 
   // Convert a ScanArchive into a Map. The keys must correspond to the names of the
   // columns in the database.
@@ -12,6 +17,7 @@ class ScanArchive {
       'id': id,
       'timestamp': timestamp,
       'scanText': scanText,
+      'scanType': scanType,
     };
   }
 
@@ -19,6 +25,6 @@ class ScanArchive {
   // each ScanArchive when using the print statement.
   @override
   String toString() {
-    return 'ScanArchive{id: $id, timestamp: $timestamp, scanText: $scanText}';
+    return 'ScanArchive{id: $id, timestamp: $timestamp, scanText: $scanText, scanType: $scanType}';
   }
 }
