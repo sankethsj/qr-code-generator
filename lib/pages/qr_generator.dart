@@ -83,7 +83,7 @@ class QrGeneratorState extends State<QrGenerator> {
     return path;
   }
 
-  Future saveQrCode(context) async {
+  Future saveQrCode(BuildContext context) async {
     String status;
     String message;
 
@@ -127,8 +127,12 @@ class QrGeneratorState extends State<QrGenerator> {
   Future shareQrCode() async {
     String path = await createQrFile();
 
-    await Share.shareXFiles([XFile(path, mimeType: "image/png")],
-        subject: 'Checkout my QR code', text: 'Please scan me');
+    await SharePlus.instance.share(ShareParams(
+      text: 'Please scan me',
+      subject: 'Checkout my QR code',
+      title: 'What a title',
+      files: [XFile(path, mimeType: "image/png")],
+    ));
   }
 
   @override

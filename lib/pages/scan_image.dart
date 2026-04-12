@@ -23,17 +23,22 @@ class ScanImageState extends State<ScanImage> {
     pickImage(context);
   }
 
-  Future pickImage(context) async {
+  Future<void> pickImage(BuildContext context) async {
     try {
+      final ctx = context;
       final image = await ImagePicker().pickImage(source: ImageSource.gallery);
       if (image == null) {
-        Navigator.of(context).pop();
+        if (mounted && ctx.mounted) {
+          Navigator.of(ctx).pop();
+        }
         return;
       }
       final imageTemp = File(image.path);
-      setState(() => this.image = imageTemp);
-    } on PlatformException catch (e) {
       if (mounted) {
+        setState(() => this.image = imageTemp);
+      }
+    } on PlatformException catch (e) {
+      if (mounted && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
@@ -58,17 +63,11 @@ class ScanImageState extends State<ScanImage> {
               fontWeight: FontWeight.w700,
             ),
           ),
-          content: Text(
-            message,
-          ),
+          content: Text(message),
           actions: [
             OutlinedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text(
-                'CLOSE',
-              ),
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('CLOSE'),
             ),
           ],
         );
@@ -76,23 +75,128 @@ class ScanImageState extends State<ScanImage> {
     );
   }
 
-  Future handleOnScan(context) async {
-    final MobileScannerController controller = MobileScannerController();
+  Widget _buildImagePreview() {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        border: Border.all(color: Theme.of(context).primaryColor),
+        borderRadius: const BorderRadius.all(Radius.circular(20)),
+      ),
+      child: image != null
+          ? Image.file(
+              image!,
+              fit: BoxFit.cover,
+            )
+          : const SizedBox(
+              height: 200,
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+    );
+  }
 
-    BarcodeCapture? result = await controller.analyzeImage(image!.path);
-
-    if (result!.barcodes.isNotEmpty) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ScanResult(
-            resultText: result.barcodes.first.rawValue!,
-            resultFormat: result.barcodes.first.format,
+  Widget _buildActionButtons() {
+    if (image != null) {
+      return Column(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () => handleOnScan(context),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.image_search_rounded),
+                  SizedBox(width: 8),
+                  Text('Scan this Image'),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => pickImage(context),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.photo_library_outlined),
+                  SizedBox(width: 8),
+                  Text('Choose another Image'),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    } else {
+      return SizedBox(
+        width: double.infinity,
+        child: FilledButton(
+          onPressed: () => pickImage(context),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.photo_library_outlined),
+              SizedBox(width: 8),
+              Text('Select an Image'),
+            ],
           ),
         ),
       );
-    } else {
-      showModal("Invalid Image", "No valid QR Codes found in the image");
+    }
+  }
+
+  Future<void> handleOnScan(BuildContext context) async {
+    final ctx = context;
+    final MobileScannerController controller = MobileScannerController();
+
+    try {
+      if (image == null) {
+        if (mounted && ctx.mounted) {
+          showModal("Error", "No image selected");
+        }
+        return;
+      }
+
+      final BarcodeCapture? result = await controller.analyzeImage(image!.path);
+
+      if (result == null || result.barcodes.isEmpty) {
+        if (mounted && ctx.mounted) {
+          showModal("Invalid Image", "No valid QR Codes found in the image");
+        }
+        return;
+      }
+
+      final barcode = result.barcodes.first;
+      final rawValue = barcode.rawValue;
+
+      if (rawValue == null || rawValue.isEmpty) {
+        if (mounted && ctx.mounted) {
+          showModal("Invalid QR Code", "QR Code content could not be read");
+        }
+        return;
+      }
+
+      if (mounted && ctx.mounted) {
+        Navigator.push(
+          ctx,
+          MaterialPageRoute(
+            builder: (context) => ScanResult(
+              resultText: rawValue,
+              resultFormat: barcode.format,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted && ctx.mounted) {
+        showModal("Error", "Failed to scan image: $e");
+      }
+    } finally {
+      controller.dispose();
     }
   }
 
@@ -115,65 +219,9 @@ class ScanImageState extends State<ScanImage> {
             width: double.infinity,
             child: Column(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Theme.of(context).primaryColor),
-                    borderRadius: const BorderRadius.all(Radius.circular(20)),
-                  ),
-                  child: image != null
-                      ? Image.file(
-                          image!,
-                          fit: BoxFit.cover,
-                        )
-                      : const CircularProgressIndicator(),
-                ),
+                _buildImagePreview(),
                 const SizedBox(height: 30),
-                if (image != null) ...[
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: () => handleOnScan(context),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.image_search_rounded),
-                          SizedBox(width: 8),
-                          Text('Scan this Image'),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => pickImage(context),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.photo_library_outlined),
-                          SizedBox(width: 8),
-                          Text('Choose another Image'),
-                        ],
-                      ),
-                    ),
-                  ),
-                ] else ...[
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: () => pickImage(context),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.photo_library_outlined),
-                          SizedBox(width: 8),
-                          Text('Select an Image'),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                _buildActionButtons(),
                 const SizedBox(height: 40),
               ],
             ),

@@ -13,7 +13,7 @@ class ThemePreference extends ChangeNotifier {
     }
   }
 
-  toggleTheme() async {
+  Future<void> toggleTheme() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if (_currentTheme == ThemeMode.light) {
       _currentTheme = ThemeMode.dark;

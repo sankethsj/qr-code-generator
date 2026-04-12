@@ -83,10 +83,7 @@ class QrScannerState extends State<QrScanner> {
                     Container(
                       margin: const EdgeInsets.all(8),
                       child: ElevatedButton(
-                        onPressed: () async {
-                          await controller.switchCamera();
-                          setState(() {}); // Add this to rebuild the widget
-                        },
+                        onPressed: () => controller.switchCamera(),
                         child: const Icon(Icons.cameraswitch_rounded),
                       ),
                     ),
@@ -125,19 +122,55 @@ class QrScannerState extends State<QrScanner> {
   void _onQRViewCreated(BarcodeCapture capture) {
     controller.stop();
 
+    // Check if barcodes were detected
+    if (capture.barcodes.isEmpty) {
+      controller.start();
+      return;
+    }
+
+    final barcode = capture.barcodes.first;
+    final rawValue = barcode.rawValue;
+
+    // Check if rawValue is valid
+    if (rawValue == null || rawValue.isEmpty) {
+      _showError("Invalid QR Code", "Could not read QR code content");
+      controller.start();
+      return;
+    }
+
     setState(() {
-      scanResult = capture.barcodes.first.rawValue!;
+      scanResult = rawValue;
     });
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ScanResult(
-          resultText: capture.barcodes.first.rawValue!,
-          resultFormat: capture.barcodes.first.format,
-          saveToHistory: true,
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ScanResult(
+            resultText: rawValue,
+            resultFormat: barcode.format,
+            saveToHistory: true,
+          ),
         ),
-      ),
-    ).then((value) => controller.start());
+      ).then((value) => controller.start());
+    }
+  }
+
+  void _showError(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

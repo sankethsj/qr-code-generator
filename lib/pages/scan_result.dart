@@ -62,6 +62,8 @@ class ScanResultState extends State<ScanResult> {
   String password = "";
   String encryption = "";
   String hidden = "";
+  String upiPaymentAddress = "";
+  String upiPaymentName = "";
 
   String getFormattedTimestamp() {
     final now = DateTime.now();
@@ -85,7 +87,10 @@ class ScanResultState extends State<ScanResult> {
     if (resultContainsLink && hasInternetConnection) {
       url = links[0];
       domain = Uri.parse(url).host;
-      _runTests(url);
+      // Skip running tests for UPI URLs
+      if (!url.startsWith('upi://')) {
+        _runTests(url);
+      }
     }
   }
 
@@ -135,23 +140,34 @@ class ScanResultState extends State<ScanResult> {
 
   Future<void> _copyToClipboard(String textData) async {
     await Clipboard.setData(ClipboardData(text: textData));
+    _showMessage('Copied to clipboard');
+  }
 
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
-        content: const Text('Copied to clipboard'),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Theme.of(context).primaryColor,
-      ),
-    );
+  void _showMessage(String message, {bool isError = false}) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor:
+              isError ? Colors.red : Theme.of(context).primaryColor,
+        ),
+      );
+    }
   }
 
   Future<void> _launchUrl(String url) async {
-    final Uri url0 = Uri.parse(url);
+    try {
+      final Uri url0 = Uri.parse(url);
 
-    if (!await launchUrl(url0, mode: LaunchMode.externalApplication)) {
-      throw Exception('Could not launch $url0');
+      if (!await launchUrl(url0, mode: LaunchMode.externalApplication)) {
+        _showMessage('Could not open URL', isError: true);
+      }
+    } catch (e) {
+      // Log error for debugging purposes
+      debugPrint('Error launching URL: $e');
+      _showMessage('Failed to open URL', isError: true);
     }
   }
 
@@ -166,19 +182,26 @@ class ScanResultState extends State<ScanResult> {
     });
   }
 
+  Future<void> _extractUpiDetails(String upiUrl) async {
+    try {
+      final Uri uri = Uri.parse(upiUrl);
+      setState(() {
+        upiPaymentAddress = uri.queryParameters['pa'] ?? '';
+        // URL decode the payment name
+        upiPaymentName = Uri.decodeComponent(uri.queryParameters['pn'] ?? '');
+      });
+    } catch (e) {
+      debugPrint('Error extracting UPI details: $e');
+    }
+  }
+
   Future<void> _ensureWifiEnabled() async {
     bool wifiEnabled = await WiFiForIoTPlugin.isEnabled();
     if (!wifiEnabled) {
       bool success = await WiFiForIoTPlugin.setEnabled(true) ?? false;
-      if (!success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
-            content: const Text('Failed to turn ON WiFi. Turn ON manually.'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Theme.of(context).primaryColor,
-          ),
-        );
+      if (!success) {
+        _showMessage('Failed to turn ON WiFi. Turn ON manually.',
+            isError: true);
       }
     }
   }
@@ -212,39 +235,12 @@ class ScanResultState extends State<ScanResult> {
       );
 
       if (connected) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
-              content: Text('Connecting to WiFi: $ssid'),
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: Theme.of(context).primaryColor,
-            ),
-          );
-        }
+        _showMessage('Connecting to WiFi: $ssid');
       } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
-              content: const Text('Failed to connect to WiFi'),
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: Theme.of(context).primaryColor,
-            ),
-          );
-        }
+        _showMessage('Failed to connect to WiFi', isError: true);
       }
     } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
-            content: const Text('Invalid WiFi details'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Theme.of(context).primaryColor,
-          ),
-        );
-      }
+      _showMessage('Invalid WiFi details', isError: true);
     }
   }
 
@@ -275,6 +271,7 @@ class ScanResultState extends State<ScanResult> {
       String firstLink = links[0];
       if (firstLink.startsWith('upi://')) {
         tempResultType = "UPI";
+        _extractUpiDetails(firstLink);
       } else if (firstLink.startsWith("https://maps.google.com") ||
           firstLink.startsWith("https://www.google.com/maps") ||
           firstLink.startsWith("https://goo.gl/maps") ||
@@ -480,7 +477,7 @@ class ScanResultState extends State<ScanResult> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                if (resultContainsLink) ...[
+                if (resultContainsLink && resultType != "UPI") ...[
                   Expanded(
                     child: SizedBox(
                       child: ListView.builder(
@@ -586,6 +583,55 @@ class ScanResultState extends State<ScanResult> {
                               password,
                               style: const TextStyle(
                                 fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                if (resultType == "UPI") ...[
+                  const SizedBox(height: 20),
+                  ListTile(
+                    title: const Text(
+                      'Payment Details',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Text(
+                              'UPI Address:',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                            const SizedBox(width: 8),
+                            SelectableText(
+                              upiPaymentAddress,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            const Text(
+                              'Name:',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                            const SizedBox(width: 8),
+                            SelectableText(
+                              upiPaymentName,
+                              style: const TextStyle(
+                                fontSize: 16,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
