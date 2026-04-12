@@ -4,9 +4,9 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:gallery_saver/gallery_saver.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:gal/gal.dart';
 
 class QrGenerator extends StatefulWidget {
   const QrGenerator({super.key});
@@ -90,10 +90,10 @@ class QrGeneratorState extends State<QrGenerator> {
     try {
       final qrFilePath = await createQrFile();
 
-      await GallerySaver.saveImage(qrFilePath);
+      await Gal.putImage(qrFilePath, album: "Download");
 
       status = "Success";
-      message = "Successfully saved to Gallery";
+      message = "Successfully saved to Download";
     } catch (e) {
       status = "Failed";
       message = "Failed to save to Gallery. $e";

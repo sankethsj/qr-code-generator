@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+
 import 'package:qr_code_gen/pages/scan_result.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:scan/scan.dart';
 
 class ScanImage extends StatefulWidget {
   const ScanImage({super.key});
@@ -77,22 +77,20 @@ class ScanImageState extends State<ScanImage> {
   }
 
   Future handleOnScan(context) async {
-    final String? result = await Scan.parse(image!.path);
+    final MobileScannerController controller = MobileScannerController();
 
-    if (result != null) {
-      if (result.trim() != "") {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ScanResult(
-              resultFormat: BarcodeFormat.qrcode,
-              resultText: result,
-            ),
+    BarcodeCapture? result = await controller.analyzeImage(image!.path);
+
+    if (result!.barcodes.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ScanResult(
+            resultText: result.barcodes.first.rawValue!,
+            resultFormat: result.barcodes.first.format,
           ),
-        );
-      } else {
-        showModal("Invalid QR Code", "This QR Code doesn't contain any data");
-      }
+        ),
+      );
     } else {
       showModal("Invalid Image", "No valid QR Codes found in the image");
     }
@@ -149,7 +147,7 @@ class ScanImageState extends State<ScanImage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: ()=> pickImage(context),
+                      onPressed: () => pickImage(context),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [

@@ -47,7 +47,7 @@ class SettingsState extends State<Settings> {
     }
   }
 
-  loadPreferences() async {
+  Future<void> loadPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     setState(() {

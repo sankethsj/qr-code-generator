@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:qr_code_gen/pages/scan_image.dart';
 import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+
+import 'package:qr_code_gen/pages/scan_image.dart';
 import 'package:qr_code_gen/pages/scan_result.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 class QrScanner extends StatefulWidget {
   const QrScanner({super.key});
@@ -13,8 +14,16 @@ class QrScanner extends StatefulWidget {
 
 class QrScannerState extends State<QrScanner> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  Barcode? result;
-  QRViewController? controller;
+  late String scanResult;
+  late MobileScannerController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = MobileScannerController(
+      autoZoom: true,
+    );
+  }
 
   // In order to get hot reload to work we need to pause the camera if the platform
   // is android, or resume the camera if the platform is iOS.
@@ -22,10 +31,16 @@ class QrScannerState extends State<QrScanner> {
   void reassemble() {
     super.reassemble();
     if (Platform.isAndroid) {
-      controller!.pauseCamera();
+      controller.pause();
     } else if (Platform.isIOS) {
-      controller!.resumeCamera();
+      controller.start();
     }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    controller.dispose();
   }
 
   @override
@@ -51,23 +66,15 @@ class QrScannerState extends State<QrScanner> {
                       margin: const EdgeInsets.all(8),
                       child: ElevatedButton(
                         onPressed: () async {
-                          await controller?.toggleFlash();
-                          setState(() {});
+                          await controller.toggleTorch();
                         },
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            FutureBuilder(
-                              future: controller?.getFlashStatus(),
-                              builder: (context, snapshot) {
-                                if (snapshot.data == true) {
-                                  return const Icon(
-                                      Icons.flashlight_on_rounded);
-                                } else {
-                                  return const Icon(
-                                      Icons.flashlight_off_rounded);
-                                }
-                              },
+                            Icon(
+                              controller.torchEnabled == true
+                                  ? Icons.flashlight_on_rounded
+                                  : Icons.flashlight_off_rounded,
                             ),
                           ],
                         ),
@@ -77,8 +84,7 @@ class QrScannerState extends State<QrScanner> {
                       margin: const EdgeInsets.all(8),
                       child: ElevatedButton(
                         onPressed: () async {
-                          await controller?.flipCamera();
-                          setState(() {});
+                          await controller.switchCamera();
                         },
                         child: const Icon(Icons.cameraswitch_rounded),
                       ),
@@ -104,56 +110,57 @@ class QrScannerState extends State<QrScanner> {
   }
 
   Widget _buildQrView(BuildContext context) {
-    var scanArea = (MediaQuery.of(context).size.width < 400 ||
-            MediaQuery.of(context).size.height < 400)
-        ? 280.0
-        : 400.0;
+    // var scanArea = (MediaQuery.of(context).size.width < 400 ||
+    //         MediaQuery.of(context).size.height < 400)
+    //     ? 280.0
+    //     : 400.0;
 
-    return QRView(
-      key: qrKey,
-      onQRViewCreated: _onQRViewCreated,
-      overlay: QrScannerOverlayShape(
-          borderColor: Theme.of(context).primaryColor,
-          borderRadius: 10,
-          borderLength: 30,
-          borderWidth: 10,
-          cutOutSize: scanArea),
-      onPermissionSet: (ctrl, p) => _onPermissionSet(context, ctrl, p),
+    return MobileScanner(
+      controller: controller,
+      onDetect: _onQRViewCreated,
     );
+    // return QRView(
+    //   key: qrKey,
+    //   onQRViewCreated: _onQRViewCreated,
+    //   overlay: QrScannerOverlayShape(
+    //       borderColor: Theme.of(context).primaryColor,
+    //       borderRadius: 10,
+    //       borderLength: 30,
+    //       borderWidth: 10,
+    //       cutOutSize: scanArea),
+    //   onPermissionSet: (ctrl, p) => _onPermissionSet(context, ctrl, p),
+    // );
   }
 
-  void _onPermissionSet(BuildContext context, QRViewController ctrl, bool p) {
-    if (!p) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
-          content: const Text('Camera Permission denied'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Theme.of(context).primaryColor,
-        ),
-      );
-    }
-  }
+  // void _onPermissionSet(BuildContext context, QRViewController ctrl, bool p) {
+  //   if (!p) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
+  //         content: const Text('Camera Permission denied'),
+  //         behavior: SnackBarBehavior.floating,
+  //         backgroundColor: Theme.of(context).primaryColor,
+  //       ),
+  //     );
+  //   }
+  // }
 
-  void _onQRViewCreated(QRViewController controller) {
-    this.controller = controller;
-    controller.scannedDataStream.listen((scanData) {
-      controller.pauseCamera();
+  void _onQRViewCreated(BarcodeCapture capture) {
+    controller.pause();
 
-      setState(() {
-        result = scanData;
-      });
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ScanResult(
-            resultFormat: result!.format,
-            resultText: result!.code ?? "No data found!",
-            saveToHistory: true,
-          ),
-        ),
-      ).then((value) => controller.resumeCamera());
+    setState(() {
+      scanResult = capture.barcodes.first.rawValue!;
     });
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ScanResult(
+          resultText: capture.barcodes.first.rawValue!,
+          resultFormat: capture.barcodes.first.format,
+          saveToHistory: true,
+        ),
+      ),
+    ).then((value) => controller.start());
   }
 }

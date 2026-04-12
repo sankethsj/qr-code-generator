@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+
 import 'package:qr_code_gen/pages/scan_result.dart';
 import 'package:qr_code_gen/utils/model.dart';
 import 'package:qr_code_gen/utils/db.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 class ScanHistory extends StatefulWidget {
   const ScanHistory({super.key});
@@ -155,7 +156,7 @@ class ScanArchiveListItem extends StatelessWidget {
               MaterialPageRoute(
                 builder: (context) => ScanResult(
                   resultText: scan.scanText,
-                  resultFormat: BarcodeFormat.qrcode,
+                  resultFormat: BarcodeFormat.qrCode,
                 ),
               ),
             )

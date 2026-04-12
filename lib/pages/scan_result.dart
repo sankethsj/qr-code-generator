@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
+// import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:qr_code_gen/utils/model.dart';
-import 'package:qr_code_gen/utils/db.dart';
-import 'package:qr_code_gen/utils/url_checker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:wifi_iot/wifi_iot.dart';
+
+import 'package:qr_code_gen/utils/db.dart';
+import 'package:qr_code_gen/utils/model.dart';
+import 'package:qr_code_gen/utils/url_checker.dart';
 
 class ScanResult extends StatefulWidget {
   final BarcodeFormat resultFormat;
@@ -38,8 +40,8 @@ class TestResult {
 }
 
 class ScanResultState extends State<ScanResult> {
-  get resultFormat => widget.resultFormat.formatName;
-  get resultText => widget.resultText;
+  String get resultFormat => widget.resultFormat.name;
+  String get resultText => widget.resultText;
 
   // List of test results with test names and their status
   final List<TestResult> _tests = [
@@ -129,7 +131,7 @@ class ScanResultState extends State<ScanResult> {
     return matches.map((match) => match.group(0) ?? '').toList();
   }
 
-  Future<void> _copyToClipboard(textData) async {
+  Future<void> _copyToClipboard(String textData) async {
     await Clipboard.setData(ClipboardData(text: textData));
 
     if (!mounted) return;
@@ -166,7 +168,7 @@ class ScanResultState extends State<ScanResult> {
     bool wifiEnabled = await WiFiForIoTPlugin.isEnabled();
     if (!wifiEnabled) {
       bool success = await WiFiForIoTPlugin.setEnabled(true) ?? false;
-      if (!success) {
+      if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
@@ -208,33 +210,39 @@ class ScanResultState extends State<ScanResult> {
       );
 
       if (connected) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
-            content: Text('Connecting to WiFi: $ssid'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Theme.of(context).primaryColor,
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
+              content: Text('Connecting to WiFi: $ssid'),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Theme.of(context).primaryColor,
+            ),
+          );
+        }
       } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
+              content: const Text('Failed to connect to WiFi'),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Theme.of(context).primaryColor,
+            ),
+          );
+        }
+      }
+    } else {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
-            content: const Text('Failed to connect to WiFi'),
+            content: const Text('Invalid WiFi details'),
             behavior: SnackBarBehavior.floating,
             backgroundColor: Theme.of(context).primaryColor,
           ),
         );
       }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          margin: const EdgeInsets.fromLTRB(20, 10, 20, 40),
-          content: const Text('Invalid WiFi details'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Theme.of(context).primaryColor,
-        ),
-      );
     }
   }
 
@@ -349,7 +357,7 @@ class ScanResultState extends State<ScanResult> {
   }
 
   // Function to run all tests in sequence
-  Future<void> _runTests(urlToTest) async {
+  Future<void> _runTests(String urlToTest) async {
     // DNS Lookup Test
     setState(() {
       _tests[0].status = TestStatus.loading;
